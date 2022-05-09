@@ -1,0 +1,34 @@
+---
+
+  - name: Assert username 
+    assert:
+      that:
+        - username is defined
+      fail_msg: "The variable username is NOT defined in inventory (AWX or Ansible default is /etc/ansible/hosts) file. See readme.md for more details."
+      success_msg: "The variable username is defined"
+    run_once: True
+
+  - name: Assert password 
+    assert:
+      that:
+        - password is defined
+      fail_msg: "The variable password is NOT defined in inventory (AWX or Ansible default is /etc/ansible/hosts) file. See readme.md for more details."
+      success_msg: "The variable password is defined"
+    run_once: True
+
+  - name: Create token from OpenBMC
+    uri:
+      url: https://{{ baseuri }}/login
+      method: POST
+      validate_certs: no
+      timeout: "{{ token_timeout }}"
+      headers:
+       Content-Type: "application/json"
+      body_format: json
+      body: 
+        username: "{{ username }}"
+        password: "{{ password }}"
+    register: result
+
+  - set_fact: 
+      x_token: "{{ result.json.token }}"

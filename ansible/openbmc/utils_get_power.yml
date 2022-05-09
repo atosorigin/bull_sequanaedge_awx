@@ -1,0 +1,17 @@
+---
+  - name: Get Host Power
+    uri:
+      url: https://{{ baseuri }}/xyz/openbmc_project/state/host0/attr/CurrentHostState
+      method: GET
+      validate_certs: no
+      headers:
+        X-Auth-Token: "{{ x_token }}"
+    register: result_power
+    
+  - set_fact:
+      power: "{{ result_power.json.data }}"
+
+  - debug:
+      msg: "power is {{ power }}"
+    when: power is defined
+

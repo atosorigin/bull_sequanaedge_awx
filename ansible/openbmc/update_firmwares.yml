@@ -1,0 +1,27 @@
+---
+- hosts: all
+  name: Update Firmware
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "{{ ANSIBLE_EXTERNAL_VARS }}"
+    - "{{ ANSIBLE_PASSWORDS }}"
+
+  tasks:
+
+  - include_tasks: ../utils/assert_update_variables.yml
+
+  - include_tasks: ../utils/utils_create_token.yml
+
+  - include_tasks: ../utils/utils_evaluate_firmware_update.yml
+
+  - include_tasks: ../utils/utils_upload_firmwares.yml
+
+  - include_tasks: ../utils/should_poweroff.yml
+
+  - include_tasks: ../utils/utils_active_firmware_update.yml
+
+  - include_tasks: ../utils/should_reboot.yml
+
+  - include_tasks: ../utils/utils_after_reboot.yml
+

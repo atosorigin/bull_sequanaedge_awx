@@ -1,0 +1,15 @@
+---
+- hosts: all
+  connection: local
+  name: Check System Power - Turn off
+  gather_facts: False
+  vars_files:
+    - "{{ ANSIBLE_EXTERNAL_VARS }}"
+    - "{{ ANSIBLE_PASSWORDS }}"
+
+  tasks:
+
+  - include_tasks: ../utils/utils_create_token.yml
+
+  - include_tasks: ../utils/utils_check_power_off.yml    
+
