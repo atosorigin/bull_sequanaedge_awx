@@ -81,7 +81,7 @@ You can get it from
 - get zip from this repository
 - clone this repository  
 
-![alt text](ansible/doc/git_clone.png)
+![alt text](doc/git_clone.png)
 
 from zip file, just unzip the file:  
 ```
@@ -96,12 +96,12 @@ git clone https://github.com/atosorigin/bull_sequanaedge_awx.git
 ### add a volume to your AWX tower
 You should add a volume to your Bull Sequana edge AWX installation  
 
-![alt text](ansible/doc/awx_add_volume.png)
+![alt text](doc/awx_add_volume.png)
 
 :warning: in Docker, simply add the volume in docker-compose.yml.j2 file and re-run :
 ` make docker-compose-build `
 
-![alt text](ansible/doc/awx_make_docker_compose.png)
+![alt text](doc/awx_make_docker_compose.png)
 
 
 ### add your playbooks
@@ -113,7 +113,7 @@ ansible-playbook add_awx_playbooks.yml
 ```
 :rotating_light: Care your TOWER CLI Configuration
 
-![alt text](ansible/doc/awx_tower_conf.png)
+![alt text](doc/awx_tower_conf.png)
   
 ![alt text](doc/awx_playbooks.png)
 
@@ -132,7 +132,7 @@ You should have now:
 3. add your hosts
 4. optionally, depending on host number, create multiple groups
 
-![alt text](ansible/doc/awx_inventory.png)
+![alt text](doc/awx_inventory.png)
 
 
 Optionally, your can import hosts from ansible: [See how to export ansible inventory hosts file to awx inventory section](#howto_export_inventory)  
@@ -145,7 +145,7 @@ The default value is mapped to the /mnt root of the host, in other words, /host/
 `technical_state_path = mnt`  
 You can change this value in the inventory variables:
 
-![alt text](ansible/doc/awx_inventory_variables.png)
+![alt text](doc/awx_inventory_variables.png)
   
 For more information [See How to change technical states file path](#howto_ts)
 
@@ -159,7 +159,7 @@ Following playbooks need to reboot in case of BMC update firmware:
 if you never want to automatically reboot the BMC, you need to change *reboot* variable in your inventory / variable part:  
 `reboot = False`
 
-![alt text](ansible/doc/awx_reboot_variable.png)
+![alt text](doc/awx_reboot_variable.png)
 
 :warning: Warning if **reboot** = False
 - Default is True meaning the BMC will reboot automatically after an update  
@@ -194,11 +194,11 @@ Change the external_vars section as needed:
 Adjust the prompt on launch option as needed, you can unselect it:  
 `prompt on launch`
 
-![alt text](ansible/doc/set_power_cap_on.png)
+![alt text](doc/set_power_cap_on.png)
 
 By default, the "prompt on launch" option is selected and this is a way to change the value on the fly, a pop-up window will appear at each launch:
 
-![alt text](ansible/doc/prompt_launch.png)
+![alt text](doc/prompt_launch.png)
 
 #### - file_to_upload
 **file_to_upload** is used in *Update firmware from file* playbook
@@ -231,9 +231,9 @@ AWX has a native vault capability.
 2. add your vault *Bull Sequana Edge Vault*
 3. add a vault password
 
-![alt text](ansible/doc/change_vault_password.png)
+![alt text](doc/change_vault_password.png)
 4. save your change
-![alt text](ansible/doc/vault_id.png)
+![alt text](doc/vault_id.png)
   
 #### - generate your passwords
 You can now generate your passwords: See [How to manage AWX encrypted passwords](#howto_manage_awx_password)
@@ -247,7 +247,7 @@ You should generate as many *password variables* as different real passwords you
 ```
 password: "{{root_password_for_edge}}"
 ```
-![alt text](ansible/doc/change_encrypted_password.png)
+![alt text](doc/change_encrypted_password.png)
 
 #### check job template credential
 You can check the credential of your job template:
@@ -263,7 +263,7 @@ For test purpose, you can always use a clear password in a host:
 2. select a host
 3. change the password in clear
 
-![alt text](ansible/doc/awx_clear_password.png)
+![alt text](doc/awx_clear_password.png)
 
 ## <a name="what_ansible"></a>What to do first on Ansible
 
@@ -292,7 +292,7 @@ Check your ansible python version:
 `ansible --version`  
 
 As explained in the documentation, you should force python3 interpreter:  
-![alt text](ansible/doc/ansible_python3_interpreter.png)
+![alt text](doc/ansible_python3_interpreter.png)
 
 ### how to add a host in ansible inventory
 by default, your ansible hosts are available in 
@@ -307,10 +307,10 @@ by default, your ansible hosts are available in
 4. add your encrypted password variable 
 `password='{{ your_encryoted_variable }}'`
 
-![alt text](ansible/doc/host_password.png)
+![alt text](doc/host_password.png)
 
 For test purpose, you can always use a clear password in your *hosts* file  
-![alt text](ansible/doc/ansible_clear_password.png)
+![alt text](doc/ansible_clear_password.png)
 
 ### how to change your external variables
 1. edit <install_dir>/openbmc/vars/external_vars.yml file
@@ -323,7 +323,7 @@ For test purpose, you can always use a clear password in your *hosts* file
 :warning: Warning : --vault-id bullsequana_edge_password@<source> is mandatory if you use vault credentials  
 *<source can be @prompt to be prompted or any encrypted source file>*
   
-![alt text](ansible/doc/ansible_playbook_vault_id.png)
+![alt text](doc/ansible_playbook_vault_id.png)
 
 ### <a name="howto_export_inventory"></a>how to export ansible inventory hosts file to awx inventory
 1. install AWX tower CLI
@@ -337,16 +337,16 @@ awx --conf.host https://localhost:8043 \
 
 :computer: Info: See https://docs.ansible.com/ansible-tower/latest/html/towercli/usage.html#installation
 
-![alt text](ansible/doc/tower_inventory_list.png)  
+![alt text](doc/tower_inventory_list.png)  
 
 3. export with awx_manage  
 `awx-manage inventory_import --source=inventory/ --inventory-id=3`  
 
-![alt text](ansible/doc/awx_manage.png)  
+![alt text](doc/awx_manage.png)  
 
 Your hosts should appear as **imported**  
 Variables and groups should appear as **imported** too  
-![alt text](ansible/doc/awx_imported.png)
+![alt text](doc/awx_imported.png)
 
 ### general options
 
@@ -374,7 +374,7 @@ To summarize, two main possibilities:
 `your_variable: your_value`
 
 :warning: Warning : You can set extra variables differently but care the precedence order  
-![alt text](ansible/doc/precedence_order.png)
+![alt text](doc/precedence_order.png)
 Best site that explain variable orders and conflicts: Visit https://subscription.packtpub.com/book/networking_and_servers/9781787125681/1/ch01lvl1sec13/variable-precedence
 
 ### update
@@ -499,7 +499,7 @@ Check your proxy configuration in /etc/profile.d/proxy.sh :
 
 You can check while installating and starting your containers:
 
-![alt text](ansible/doc/awx_check_profile_proxy.png)
+![alt text](doc/awx_check_profile_proxy.png)
 
 #### docker proxy
 1. create docker.service.d
@@ -552,7 +552,7 @@ ansible-playbook evaluate_firmware_update.yml -i /etc/ansible/redfish_plugin_ans
 
 *@prompt means that you should enter the Vault password during the process (hidden)*
 
-![alt text](ansible/doc/ansible_sensors.png)
+![alt text](doc/ansible_sensors.png)
 
 ## <a name="howto_cert"></a>How to change certificat on AWX server
 
@@ -629,7 +629,7 @@ host$> docker exec -it awx_task bash
 bash# ls /host/mnt
 ```
   
-![alt text](ansible/doc/check_docker_volume_technical_state.png)
+![alt text](doc/check_docker_volume_technical_state.png)
 
 ## <a name="howto_docker_logon"></a>How to log on a docker container
 
@@ -668,7 +668,7 @@ If you need to adapt a Dockerfile in Dockerfiles directory:
 4. comment the remove-xxx-containers.sh line
 5. run your newly modified install script
 
-![alt text](ansible/doc/dockerfiles_tag_latest.png) 
+![alt text](doc/dockerfiles_tag_latest.png) 
 
 :warning: Warning: if you change MISM_TAG_BULLSEQUANA_EDGE_VERSION=**tag** to MISM_TAG_BULLSEQUANA_EDGE_VERSION=**latest**, you should use Dockerfile-xxx.**latest** files
 
@@ -680,16 +680,16 @@ if you need to adapt the versions:
 5. run your newly modified install script
 
 - versions **tag**
-![alt text](ansible/doc/versions_tag.png) 
+![alt text](doc/versions_tag.png) 
 - versions **latest**
-![alt text](ansible/doc/versions_latest.png) 
+![alt text](doc/versions_latest.png) 
 
 :warning: Warning: do *NOT* forget to comment the remove-xxx-containers.sh line at the beginning of the install-xxx script
 
-![alt text](ansible/doc/comment_remove.png) 
+![alt text](doc/comment_remove.png) 
 
 After a build and install process, the result should be:
-![alt text](ansible/doc/build_process.png) 
+![alt text](doc/build_process.png) 
 
 ## <a name="howto_manage_ansible_password"></a>How to manage Ansible encrypted passwords
 ### generate an Ansible native encrypted password
@@ -716,22 +716,22 @@ Encryption successful
 ### use your Ansible encrypted password
 You should replace " password= " in your hosts file
 
-![alt text](ansible/doc/your_ansible_password_in_host.png)
+![alt text](doc/your_ansible_password_in_host.png)
 
 
 :lock: Info: you should run your playbooks with *--ask-vault-pass* or *--vault-id* in command line (alternatively you can indicate a vault_password_file in your ansible.cfg : See next section)  
 
 *--ask-vault-pass*
 
-![alt text](ansible/doc/ansible_ask_vault_pass.png)
+![alt text](doc/ansible_ask_vault_pass.png)
 
 or alternatively *--vault-id*
 
-![alt text](ansible/doc/ansible_prompt_vault_id.png) 
+![alt text](doc/ansible_prompt_vault_id.png) 
 
 :warning: Warning: If you do *NOT* add --vault-id followed by bull_sequana_edge_password vault identifier, you will have the following error: *no vault secrets found*
  
-![alt text](ansible/doc/error_secure_password.png)
+![alt text](doc/error_secure_password.png)
   
 :lock: Info: you should install optional prerequisites => See [install ansible locally](#install_locally)
 
@@ -745,18 +745,18 @@ The following steps is an example of how to create a file that contains the vaul
  
 1. create a file - preferably named *bullsequana_edge_password* to be compatible with AWX vault password id:
 
-![alt text](ansible/doc/protected_secret_file.png)
+![alt text](doc/protected_secret_file.png)
 
 :warning: Warning: If you want to be compatible with AWX vault-id, you need to name the vault password file with the vault password id : *bullsequana_edge_password*
 
 2. edit your *ansible.cfg* file 
 3. uncomment the vault_password_file section
 4. add the /path/filename to your vault password file 
-![alt text](ansible/doc/ansible_config_vault_password_file.png)
+![alt text](doc/ansible_config_vault_password_file.png)
   
 5. edit the *generate_encrypted_password_for_Ansible.sh* shell script 
 6. remove the *--vault-id ...@prompt* part
-![alt text](ansible/doc/change_generate_pass_for_ansible.png)
+![alt text](doc/change_generate_pass_for_ansible.png)
   
 you can now generate as many encrypted password variables as needed and play your playbooks without been prompted to the vault password
 
@@ -767,7 +767,7 @@ you can now generate as many encrypted password variables as needed and play you
 ### remove an encrypted password
 1. edit the file <install_dir>/ansible/vars/passwords.yml  
 2. remove the password entry as desired  
-![alt text](ansible/doc/remove_password.png)
+![alt text](doc/remove_password.png)
 
 ### clean a corrupted password file
 1. edit the file <install_dir>/ansible/vars/passwords.yml  
@@ -782,7 +782,7 @@ a_named_variable: !vault |
           3737  
   
 3. remove the lines that are corrupted  
-![alt text](ansible/doc/corrupted_passwords.png)
+![alt text](doc/corrupted_passwords.png)
 
 
 
@@ -793,14 +793,14 @@ a_named_variable: !vault |
   
 `./generate_encrypted_password_for_AWX.sh --name your_password_name your_real_password_to_encrypt`  
 
-![alt text](ansible/doc/generate_password_result.png)  
+![alt text](doc/generate_password_result.png)  
 
 *you should indicate your customized vault password during this generation*
 
 ### use your Ansible encrypted password
 You should replace your " password:" in your inventory / hosts VARIABLES part:  
 
-![alt text](ansible/doc/your_awx_password_in_host.png)
+![alt text](doc/your_awx_password_in_host.png)
 
 ## <a name="warning_updates"></a>Warning for updates
 :warning: Never change original playbooks => duplicate playbooks  
