@@ -1,0 +1,33 @@
+---
+- hosts: all
+  connection: local
+  name: Manage System Power - Reboot BMC
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+
+  tasks:
+
+  - name: assert reboot variable
+    assert:
+      that:
+        - reboot is defined
+      fail_msg: "The variable reboot is NOT defined in inventory (AWX) or vars/external_vars file (Ansible). See readme.md for more details."
+      success_msg: "The variable reboot is defined"
+    run_once: true
+
+  - debug:
+      msg: "reboot is {{ reboot }}"
+    when: reboot is defined
+    run_once: true
+
+  - include_tasks: utils_create_token.yml
+
+  - include_tasks: utils_reboot.yml   
+
+  - name: Count down {{reboot_countdown}} minutes before checking reboot
+    pause:
+      minutes: "{{reboot_countdown}}"
+
+  - include_tasks: utils_check_reboot.yml   
+

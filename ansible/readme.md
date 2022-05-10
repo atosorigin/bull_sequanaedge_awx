@@ -93,17 +93,155 @@ from this repository, just clone:
 git clone https://github.com/atosorigin/bull_sequanaedge_awx.git
 ```
 
-### add a volume to your AWX tower
-You should add a volume to your Bull Sequana edge AWX installation  
+### install your playbooks
+Copy the "openbmc" directory in your target directory (mounted in your kube / docker)  
+
+![alt text](doc/awx_install_playbooks.png)
+
+:computer: in Docker, you can simply add the volume in docker-compose.yml.j2 file and re-run :
 
 ![alt text](doc/awx_add_volume.png)
 
-:warning: in Docker, simply add the volume in docker-compose.yml.j2 file and re-run :
 ` make docker-compose-build `
+` make docker-compose `
 
 ![alt text](doc/awx_make_docker_compose.png)
+### change your inventory variables 
+You should change the *Variables* in the file <target_dir>/openbmc/vars/external_vars.yml declared in your volume.
+
+You may add/change *Variables*  in AWX inventory variables, if you remove it from your openbmc/vars/external_vars.yml file.
 
 
+The following chapter explains the meaning of all variables.
+#### - countdowns
+activating_countdown
+:arrow_right:default: 30 SECONDS   
+:arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares
+  
+poweroff_countdown  
+:arrow_right:default: 5 SECONDS  
+:arrow_right:used in: power_on.yml  
+  
+poweron_countdown   
+:arrow_right:default: 5 SECONDS
+:arrow_right:used in: power_on.yml
+  
+reboot_countdown  
+:arrow_right:default: 3 MINUTES  
+:arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares
+  
+#### - file_to_upload
+:arrow_right:used in: update_firmware_from_file
+
+:warning: **file_to_upload** variable is defined **localy** : the file is sent to the server
+
+Change the external_vars section as needed:  
+` file_to_upload: /var/lib/awx/mnt/Resources/your_image.ext" `  
+Adjust the prompt on launch option as needed:  
+`prompt on launch`  
+
+#### - forceoff
+:arrow_right:default: **False**
+:arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares
+
+if you never want to automatically force the remote server power off, you need to change **forceoff** variable in your inventory / variable part:
+
+`forceoff = False`
+
+:warning: Warning if **forceoff** = False
+- Default is **True** meaning the BMC will power off automatically the host (server) during BIOS update   
+- Playbooks needing a **forceoff** will not activate BIOS update: BIOS update will be effective next power off / on cycle  
+- *power_off.yml* does NOT care this variable  
+
+#### - maxretries
+activating_maxretries  
+:arrow_right:default: 10 times
+:arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares
+
+reboot_maxretries  
+:arrow_right:default: 10 times
+:arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares
+  
+poweroff_maxretries  
+:arrow_right:default: 10 times
+:arrow_right:used in: power_off.yml, update_firmware_from_file, update_firmwares
+
+poweron_maxretries  
+:arrow_right:default: 10 times
+:arrow_right:used in: power_on.yml
+
+#### - ntp_server_ip / ntp_server_sync
+:arrow_right:default: NTP
+:arrow_right:used in: set_ntp_server_ip_and_sync.yml
+
+#### - power_cap
+:arrow_right:default: 500
+:arrow_right:used in: set_power_cap_on.yml
+
+So, the **power_cap** variable is defined localy inside external_vars section of the playbook
+
+Change the external_vars section as needed:  
+`power_cap: 500`  
+
+Adjust the prompt on launch option as needed, you can unselect it:  
+`prompt on launch`
+
+![alt text](doc/set_power_cap_on.png)
+
+By default, the "prompt on launch" option is selected and this is a way to change the value on the fly, a pop-up window will appear at each launch:
+
+![alt text](doc/prompt_launch.png)
+
+#### - purpose_to_delete / version_to_delete
+:arrow_right:used in: delete_firmware_image.yml
+
+purpose_to_delete: possible values: Bios or Bmc or Host
+
+#### - rsyslog_server_ip / rsyslog_server_port
+:arrow_right:default port: 514
+:arrow_right:used in: set_rsyslog_server_ip_and_port.yml
+
+#### - reboot
+:arrow_right:default: **True** 
+:arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares
+
+if you never want to automatically reboot the BMC, you need to change *reboot* variable in your inventory / variable part:  
+`reboot = False`
+
+![alt text](doc/awx_reboot_variable.png)
+
+:warning: Warning if **reboot** = False
+- Default is True meaning the BMC will reboot automatically after an update  
+- Playbooks needing a **reboot** will not proceed to reboot: BMC update will be effective next reboot   
+- *reboot.yml* playbook does NOT care this variable and force the reboot
+
+#### - technical_state_path variable
+:arrow_right:default: /mnt   
+:arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares  
+
+The technical state path should point to a technical state directory - technical state (TS) file delivered by Atos.
+The default value is mapped to the /mnt root of the host, in other words, /mnt in your container (kube or docker):  
+`technical_state_path = /mnt`  
+
+example:
+```sh
+  volumes:
+    - /mnt:/mnt:ro
+```
+
+![alt text](doc/awx_inventory_variables.png)
+  
+For more information [See How to change technical states file path](#howto_ts)
+
+#### - token_timeout
+:arrow_right:default: 5 SECONDS 
+:arrow_right:used in all playbooks for the connection
+
+#### - rsyslog_server_ip / port
+:arrow_right:default: **True** 
+:arrow_right:used in: check_rsyslog_server_ip_and_port.yml, set_rsyslog_server_ip.yml, set_rsyslog_server_port.yml
+
+  
 ### add your playbooks
 Run the ansible role:  
 
@@ -138,93 +276,7 @@ You should have now:
 Optionally, your can import hosts from ansible: [See how to export ansible inventory hosts file to awx inventory section](#howto_export_inventory)  
 Optionally, your can detect hosts with nmap inventory script: [See nmap in Command line section](#howto_nmap)  
 
-### change your inventory variables 
-#### - technical_state_path variable
-The technical state path should point to a technical state directory - technical iso file delivered by Atos.
-The default value is mapped to the /mnt root of the host, in other words, /host/mnt in the docker containers:  
-`technical_state_path = mnt`  
-You can change this value in the inventory variables:
-
-![alt text](doc/awx_inventory_variables.png)
-  
-For more information [See How to change technical states file path](#howto_ts)
-
-#### - reboot
-Default value is **True**  
-
-Following playbooks need to reboot in case of BMC update firmware:
-- Update firmwares from Technical State
-- Update firmware from file
-
-if you never want to automatically reboot the BMC, you need to change *reboot* variable in your inventory / variable part:  
-`reboot = False`
-
-![alt text](doc/awx_reboot_variable.png)
-
-:warning: Warning if **reboot** = False
-- Default is True meaning the BMC will reboot automatically after an update  
-- Playbooks needing a **reboot** will not proceed to reboot: BMC update will be effective next reboot   
-- *Reboot* playbook does NOT care this variable   and force the reboot
-
-#### - forceoff
-Default value is **True**  
-
-Following playbooks need to reboot in case of BMC update firmware:
-- Update firmwares from Technical State
-- Update firmware from file
-- Activate firmware updates
-
-if you never want to automatically force the remote server power off, you need to change **forceoff** variable in your inventory / variable part:
-
-`forceoff = False`
-
-:warning: Warning if **forceoff** = False
-- Default is **True** meaning the BMC will power off automatically the host (server) during BIOS update   
-- Playbooks needing a **forceoff** will not activate BIOS update: BIOS update will be effective next power off / on cycle  
-- *Immediate Shutdown* and *Orderly Shutdown* playbooks do NOT care this variable  
-
-#### - power_cap
-**power_cap** is used in *Set Power Cap on* playbook
-
-So, the **power_cap** variable is defined localy inside external_vars section of the playbook
-
-Change the external_vars section as needed:  
-`power_cap: 500`  
-
-Adjust the prompt on launch option as needed, you can unselect it:  
-`prompt on launch`
-
-![alt text](doc/set_power_cap_on.png)
-
-By default, the "prompt on launch" option is selected and this is a way to change the value on the fly, a pop-up window will appear at each launch:
-
-![alt text](doc/prompt_launch.png)
-
-#### - file_to_upload
-**file_to_upload** is used in *Update firmware from file* playbook
-
-So, the **file_to_upload** variable is defined localy inside external_vars section of the playbook
-
-Change the external_vars section as needed:  
-` file_to_upload: /var/lib/awx/mnt/Resources/your_image.ext" `  
-Adjust the prompt on launch option as needed:  
-`prompt on launch`  
-
-#### - countdowns
-In your inventory *Variables* section, just change the appropriate countdown variable:
-
-![alt text](https://ansible/doc/awx_variables_inventory_section.png)
-
-#### - maxretries
-In your inventory *Variables* section, just change the appropriate maxretries variable (same as countdowns)
-
-#### - rsyslog_server_ip / port
-Following playbooks need these variables:
-- Check Rsyslog Server IP and Port
-- Set Rsyslog Server IP
-- Set Rsyslog Server Port
-  
-### use your credential
+### add a credential to encrypt passwords
 AWX has a native vault capability.
 #### - add an AWX vault password
 1. go to AWX Credentials
@@ -280,9 +332,7 @@ If you already have an Ansible installation, you can just install ansible playbo
 `yum install python3`  
 2. install ansible  
 `pip3 install ansible`  
-3. run the script (Careful: edit the script => See Warning after)   
-`<install_dir>/install_playbooks_and_plugins.sh`  
-4. optionnaly if you use Ansible vault:  
+3. optionnaly if you use Ansible vault:  
 `pip3 install pycryptodome`  
 `pip3 install ansible-vault`  
 
@@ -320,6 +370,10 @@ For test purpose, you can always use a clear password in your *hosts* file
 2. go to your playbook directory
 3. execute ansible-playbook command with appropriate parameters and desired playbook
   
+`ansible-playbook -l MIPOCKET get_bmc_state.yml`
+
+![alt text](doc/ansible_play_with_limit_hosts.png)
+
 :warning: Warning : --vault-id bullsequana_edge_password@<source> is mandatory if you use vault credentials  
 *<source can be @prompt to be prompted or any encrypted source file>*
   
@@ -589,107 +643,24 @@ nginx.crt
 
 ## <a name="howto_ts"></a>How to change technical states file path
 ### default value
-By default, the root host directory '/' is mapped as a read only access in the docker containers:  
-`- /:/host:ro`
+Default value is /mnt
 
-So, in your inventory, you can define the `technical_state_path:` variable to whatever you want  
-`technical_state_path: /host/mnt`  
-`technical_state_path: /host/var`  
-`technical_state_path: /host/usr/me`  
+:rotating_light: /mnt is a path inside a volume (docker or kube)
 
-### change your technical states file path
-For any reason, if you really need to adapt the 'volumes' mapping, follow the instructions:
-
-1. edit docker-compose-awx.yml
-2. locate to 'volumes' section of awx_web and awx_task services:
-```
-  volumes:
-    - /mnt:/mnt:ro
-```
-3. change mapped volumes with whatever you want except:
-
-```
-/tmp:/tmp => do NOT map /tmp directory => it change AWX behavior
-/:/ => NO sens
-```
-:no_entry: Warning: Be careful to change both awx_web and awx_task docker containers and to adapt the technical_state_path variable of your inventory  
+:no_entry: Warning: re-run AWX TOWER if you mount/unmount the directory
 
 `technical_state_path: /mnt`  
 
-*in the previous example: if you change the /mnt of your host, it does NOT change the /mnt of your docker container, so be careful if you change the docker volumes mapping*
 
-### check your technical states file path
-
-If you need to check the directory, just log on to the docker awx_web/awx_task containers and check the file system:  
+### test your technical states file path indide your kube or docker installation
+If you need to check the directory, just log on to the docker awx_<id> containers and check the file system:  
 ```
-host$> docker exec -it awx_web bash
-bash# ls /host/mnt
+host$> docker exec -it awx_<your container> bash
+bash# ls /mnt
 bash# exit
-host$> docker exec -it awx_task bash
-bash# ls /host/mnt
 ```
   
 ![alt text](doc/check_docker_volume_technical_state.png)
-
-## <a name="howto_docker_logon"></a>How to log on a docker container
-
-To log on a container with an interactive terminal:
-
-```
-docker exec -it <container name> <executable command or shell>
-where:
--i = interactive
--t = terminal
-<container name> is awx_web or awx_task : both can be use to use ansible CLI
-<executable command or shell> 
-  shell : could be bash or sh
-  command : any ansible command
-```
-container names are :  
-awx_web  
-awx_task  
-awx_postgres  
-memcached  
-rabbitmq   
-
-:computer: Info: tower-cli is installed on awx_web. You can use any tower-cli command. For more info Visit https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html
-
-examples  
-```
-docker exec -it awx_task bash`
-docker exec -it awx_web ansible-playbook projects/openbmc/inventory/get_sensors.yml`
-```
-
-## <a name="howto_build"></a>How to build my own docker container
-If you need to adapt a Dockerfile in Dockerfiles directory:
-1. edit the desired Dockerfile-xxx.**tag** and adapt it
-2. run the corresponding build-xxx
-3. edit the corresponding install-xxx script 
-4. comment the remove-xxx-containers.sh line
-5. run your newly modified install script
-
-![alt text](doc/dockerfiles_tag_latest.png) 
-
-:warning: Warning: if you change MISM_TAG_BULLSEQUANA_EDGE_VERSION=**tag** to MISM_TAG_BULLSEQUANA_EDGE_VERSION=**latest**, you should use Dockerfile-xxx.**latest** files
-
-if you need to adapt the versions:
-1. edit versions.sh and adapt it
-2. run the corresponding build-xxx
-3. edit the corresponding install-xxx script 
-4. comment the remove-xxx-containers.sh line
-5. run your newly modified install script
-
-- versions **tag**
-![alt text](doc/versions_tag.png) 
-- versions **latest**
-![alt text](doc/versions_latest.png) 
-
-:warning: Warning: do *NOT* forget to comment the remove-xxx-containers.sh line at the beginning of the install-xxx script
-
-![alt text](doc/comment_remove.png) 
-
-After a build and install process, the result should be:
-![alt text](doc/build_process.png) 
 
 ## <a name="howto_manage_ansible_password"></a>How to manage Ansible encrypted passwords
 ### generate an Ansible native encrypted password
@@ -805,14 +776,7 @@ You should replace your " password:" in your inventory / hosts VARIABLES part:
 ## <a name="warning_updates"></a>Warning for updates
 :warning: Never change original playbooks => duplicate playbooks  
   
-You can use the directory ansible/playbooks to add your own playbooks.  
-
-## <a name="more_help"></a>More help
-Ansible Help is accessible as Ansible Documentation :
-#### outside a awx_web docker container
-`docker exec -it awx_web ansible-doc -t module atos_openbmc`
-#### inside docker containers
-`ansible-doc -t inventory --list`
+You can use the directory ansible/openbmc to add your own playbooks at your own risk. 
 
 ## <a name="support"></a>Support
   * This branch corresponds to the release actively under development.

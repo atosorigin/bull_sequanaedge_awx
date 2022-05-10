@@ -1,0 +1,26 @@
+---
+- hosts: all
+  name: Update Firmware
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+
+  tasks:
+
+  - include_tasks: assert_update_variables.yml
+
+  - include_tasks: utils_create_token.yml
+
+  - include_tasks: utils_evaluate_firmware_update.yml
+
+  - include_tasks: utils_upload_firmwares.yml
+
+  - include_tasks: should_poweroff.yml
+
+  - include_tasks: utils_active_firmware_update.yml
+
+  - include_tasks: should_reboot.yml
+
+  - include_tasks: utils_after_reboot.yml
+

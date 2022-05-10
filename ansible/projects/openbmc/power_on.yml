@@ -1,0 +1,32 @@
+---
+- hosts: all
+  connection: local
+  name: Manage System Power on 
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+  
+  tasks:
+
+  - name: validate poweron_countdown variable
+    assert:
+      that:
+        - poweron_countdown is defined
+      fail_msg: "The variable poweron_countdown is NOT defined in inventory (AWX) or vars/external_vars file (Ansible). See readme.md for more details."
+      success_msg: "The variable poweron_countdown is defined"
+    run_once: true
+
+  - debug:
+      msg: "poweron_countdown is {{ poweron_countdown }}"
+    when: poweron_countdown is defined
+    run_once: true
+
+  - include_tasks: utils_create_token.yml
+
+  - include_tasks: utils_power_on.yml    
+
+  - name: Retry until power on
+    include_tasks: wait_until_success_power_on.yml   
+
+  - include_tasks: utils_check_power_on.yml    
+

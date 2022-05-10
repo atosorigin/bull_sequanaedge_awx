@@ -1,0 +1,29 @@
+---
+- hosts: all
+  name: Get Logs
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "{{ ANSIBLE_EXTERNAL_VARS }}"
+    - "{{ ANSIBLE_PASSWORDS }}"
+  
+  tasks:
+  - include_tasks: ../utils/utils_create_token.yml
+
+  - name: get Logs
+    uri:
+      url: https://{{ baseuri }}/xyz/openbmc_project/logging/enumerate
+      method: GET
+      validate_certs: no
+      headers:
+        X-Auth-Token: "{{ x_token }}"
+    register: result_logs
+
+  - set_fact:
+      logs: "{{ result_logs.json.data }}"
+
+  - name: Render logs
+    debug:
+      var: logs
+    when: logs is defined
+

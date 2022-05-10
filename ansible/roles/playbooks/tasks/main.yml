@@ -17,23 +17,6 @@
     name: "{{ inv_name }}"
     organization: "{{ org_name }}"  
     state: present  
-    variables: 
-        technical_state_path: /mnt
-        forceoff: true
-        reboot: true
-        ntp_server_ip: 127.0.0.1
-        ntp_server_sync: NTP
-        rsyslog_server_ip: 0.0.0.0
-        rsyslog_server_port: 514
-        reboot_countdown: 2
-        poweron_countdown: 5
-        activating_countdown: 30
-        poweroff_countdown: 5
-        reboot_maxretries: 10
-        poweron_maxretries: 10
-        activating_maxretries: 10
-        poweroff_maxretries: 10
-        token_timeout: 5
 
 - name: Add 10.22.89.186 host
   awx.awx.host:

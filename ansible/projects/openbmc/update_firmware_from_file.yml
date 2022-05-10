@@ -1,0 +1,70 @@
+---
+- hosts: all
+  name: Firmware Update
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+
+  tasks:
+
+  - name: file to upload
+    assert:
+      that:
+        - file_to_upload is defined
+      fail_msg: "The variable file_to_upload is NOT defined in inventory (AWX) or vars/external_vars file (Ansible) \n optionaly as an extra argument like --e \"file_to_upload=/tmp/OMF_MIPCS_xxxx_yyyy.tar\" \n See readme.md for more details."
+      success_msg: "The variable file_to_upload is defined"
+    run_once: true
+
+  - debug:
+      msg: "file_to_upload is {{ file_to_upload }}"
+    when: file_to_upload is defined
+    run_once: true
+
+  - include_tasks: assert_update_variables.yml
+
+  - include_tasks: utils_create_token.yml
+
+  - name: upload Firmware Image
+    uri:
+      url: https://{{ baseuri }}/upload/image
+      method: PUT
+      validate_certs: no
+      src: "{{ file_to_upload }}"
+      headers:
+        X-Auth-Token: "{{ x_token }}"
+        Content-Type: "application/octet-stream"
+    ignore_errors: no
+    register: result_upload_firmware
+
+  - debug:
+      var: result_upload_firmware
+      verbosity: 2
+    when: result_upload_firmware is defined
+
+  - name: check if file not found
+    fail: msg="Bad path or file name, Please check file path and name in --extra-vars"
+    when: result_upload_firmware.failed and not result_upload_firmware.changed and "Could not find or access" in result_upload_firmware.msg
+
+  - name: check tar failure
+    fail: msg="tar failure"
+    when: result_upload_firmware.failed and "Version already exists" in result_upload_firmware.msg
+
+  - include_tasks: utils_firmware_inventory.yml
+
+  - name: render Ready Firmwares after Upload
+    debug:
+      msg: "Ready firmware = {{ item.key }} as {{ item.value.Purpose }}-{{ item.value.Version }}"
+    when: item.value.Activation is defined and item.value.Activation == "xyz.openbmc_project.Software.Activation.Activations.Ready"
+    with_dict: "{{ firmware_inventory }}"
+
+  - include_tasks: should_poweroff.yml
+  
+  - include_tasks: utils_firmware_inventory.yml
+
+  - include_tasks: utils_active_firmware_update.yml
+
+  - include_tasks: should_reboot.yml
+
+  - include_tasks: utils_after_reboot.yml
+

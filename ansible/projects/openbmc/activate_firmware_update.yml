@@ -1,0 +1,34 @@
+---
+- hosts: all
+  name: Activate Firmwares
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+
+  tasks:
+
+  - include_tasks: assert_activate_variables.yml
+
+  - include_tasks: utils_create_token.yml
+
+  - include_tasks: utils_firmware_inventory.yml
+
+  - include_tasks: should_poweroff.yml
+
+  - include_tasks: utils_active_firmware_update.yml
+
+  - include_tasks: should_reboot.yml
+
+  - name: Fails on Failed state
+    fail: 
+      msg: "Fails on {{item.value.Purpose}} - {{item.value.Version}} - {{item.value.Activation}} - {{item.value.RequestedActivation}}"
+    when: >
+        ( item.value.RequestedActivation is defined and
+          not item.value.RequestedActivation == "xyz.openbmc_project.Software.Activation.RequestedActivations.None"
+        )
+        or
+        ( item.value.Activation is defined and
+          item.value.Activation == "xyz.openbmc_project.Software.Activation.Activations.Failed" 
+        )
+    with_dict: "{{ firmware_inventory }}"

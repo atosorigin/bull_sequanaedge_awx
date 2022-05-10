@@ -1,0 +1,26 @@
+---
+- hosts: all
+  name: Firmware Update
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+ 
+  tasks:
+  - name: Assert technical_state_path variable
+    assert:
+      that:
+        - technical_state_path is defined
+      fail_msg: "The variable technical_state_path is NOT defined in inventory (AWX) or vars/external_vars file (Ansible). See readme.md for more details."
+      success_msg: "The variable technical_state_path is defined"
+    run_once: true
+
+  - debug:
+      msg: "technical_state_path is {{ technical_state_path }}"
+    when: technical_state_path is defined
+    run_once: true
+
+  - include_tasks: utils_create_token.yml
+
+  - include_tasks: utils_evaluate_firmware_update.yml
+

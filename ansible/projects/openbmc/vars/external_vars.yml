@@ -1,0 +1,57 @@
+# Set a path to a Bull Technical State file
+# technical_state_path: /mnt
+technical_state_path: /mnt
+# Define rsyslog ip
+# rsyslog_server_ip: 
+rsyslog_server_ip: 
+# To delete a ready image : uncomment and fill the Purpose and the Version
+# purpose_to_delete: 
+# version_to_delete: 
+purpose_to_delete: 
+version_to_delete: 
+# File to upload with update_firmware_from_file.yml playbook
+# file_to_upload: /mnt/Resources/Firmware_and_related_documents/BIOS/<here your file .tar or .gzip>
+file_to_upload: 
+# rsyslog_server_port: 514
+rsyslog_server_port: 514
+# Define a power capability
+# power_cap: 500
+power_cap: 500
+# Update and Activate playbooks use these variables if needed
+# forceoff: false
+forceoff: false
+# reboot: true
+reboot: true
+# url timeout when creating token in SECONDS
+# token_timeout: 5
+token_timeout: 5
+# Count down before checking a successfull reboot in MINUTES
+# reboot_countdown: 2
+reboot_countdown: 2
+# Count down before checking a successfull for power on/off in SECONDS
+# poweron_countdown: 5
+poweron_countdown: 5
+# Count down before checking a successfull for power on/off in SECONDS
+# poweroff_countdown: 5
+poweroff_countdown: 5
+# Count down after activating update in SECONDS
+# activating_countdown: 30
+activating_countdown: 30
+# Number of retries while rebooting before failure
+# reboot_maxretries: 10
+reboot_maxretries: 10
+# Number of retries while powering on before failure
+# poweron_maxretries: 10
+poweron_maxretries: 10
+# Number of retries while powering off before failure
+# poweroff_maxretries: 10
+poweroff_maxretries: 10
+# Number of retries while activating firmwares before failure
+# activating_maxretries: 10
+activating_maxretries: 10
+# Define the NTP server IP
+ntp_server_ip: 127.0.0.1
+# ntp_server_ip: 127.0.0.1
+# Define the NTP server Sync method NTP (warning: MANUAL is experimental)
+# ntp_server_sync: NTP
+ntp_server_sync: NTP
