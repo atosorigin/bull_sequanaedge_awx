@@ -7,8 +7,8 @@ BullSequana Edge ORA
 
 ## Prerequisites
 Ansible playbooks can be used as is with following prerequisites:
-  * AWX Operator 21.0>+
-  * AWX CLI  21.0>+
+  * AWX Operator 21.0>+  :computer: See https://github.com/ansible/awx/blob/devel/INSTALL.md
+  * AWX CLI 21.0>+  :computer: See https://github.com/ansible/awx/blob/devel/INSTALL.md#installing-the-awx-cli
   * Ansible 2.10>+
   * Python 3.8>+
   * modules Python : ansible-vault and tzlocal (delivered in "prerequisites" directory)
@@ -17,11 +17,10 @@ Ansible playbooks can be used as is with following prerequisites:
 - [BullSequana Edge Playbooks](#playbooks)
 - [What to do first on AWX](#what_awx)
 - [What to do first on Ansible](#what_ansible)
-- [What are Firmware update Workflows](#update_workflows)
 - [How to manage AWX encrypted passwords](#howto_manage_ansible_password)
 - [How to manage Ansible encrypted passwords](#howto_manage_awx_password)
-- [How to change your proxy](#howto_proxy)
-- [How to add your technical states file path](#howto_ts)
+- [How to configure your proxy](#howto_proxy)
+- [How to configure your technical states file path](#howto_ts)
 - [Warning for updates](#warning_updates)
 - [More help](#more_help)
 - [Support](#support)
@@ -94,18 +93,43 @@ git clone https://github.com/atosorigin/bull_sequanaedge_awx.git
 ```
 
 ### install your playbooks
-Copy the "openbmc" directory in your target directory (mounted in your kube / docker)  
+Copy the "openbmc" directory in your <target_dir> directory (mounted in your kube / docker)  
+:warning: Warning : Exclude **vars** directory if you modify some variables in your <target_dir> directory
+
+:info: Info You may map directly the **projects** directory to your directory mounted in your kube / docker  
 
 ![alt text](doc/awx_install_playbooks.png)
 
-:computer: in Docker, you can simply add the volume in docker-compose.yml.j2 file and re-run :
+:computer: in Docker, you can simply add the volume in **docker-compose.yml.j2** file and re-run :
 
 ![alt text](doc/awx_add_volume.png)
+
+:warning: Warning: You should re-run **docker-compose-build** if you change the **docker-compose.yml.j2** file
 
 ` make docker-compose-build `
 ` make docker-compose `
 
 ![alt text](doc/awx_make_docker_compose.png)
+
+### create your superuser
+As indicated in the documentation, create your first super user:
+`docker exec -ti tools_awx_1 awx-manage createsuperuser`
+:computer: INFO:  See https://github.com/ansible/awx/blob/devel/tools/docker-compose/README.md#create-an-admin-user
+
+### install your plugins
+Copy your plugins in the shared ansible module directory.
+
+:warning: If you use kube or docker : you should map the plugins directory
+
+![alt text](doc/awx_add_volume.png)
+
+:warning: Warning: You should re-run **docker-compose-build** if you change the **docker-compose.yml.j2** file
+
+` make docker-compose-build `
+` make docker-compose `
+
+![alt text](doc/awx_make_docker_compose.png)
+
 ### change your inventory variables 
 You should change the *Variables* in the file <target_dir>/openbmc/vars/external_vars.yml declared in your volume.
 
@@ -114,37 +138,37 @@ You may add/change *Variables*  in AWX inventory variables, if you remove it fro
 
 The following chapter explains the meaning of all variables.
 #### - countdowns
-activating_countdown
+activating_countdown  
 :arrow_right:default: 30 SECONDS   
-:arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares
+:arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares  
   
 poweroff_countdown  
 :arrow_right:default: 5 SECONDS  
 :arrow_right:used in: power_on.yml  
   
 poweron_countdown   
-:arrow_right:default: 5 SECONDS
+:arrow_right:default: 5 SECONDS  
 :arrow_right:used in: power_on.yml
   
 reboot_countdown  
 :arrow_right:default: 3 MINUTES  
-:arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares
+:arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares  
   
 #### - file_to_upload
 :arrow_right:used in: update_firmware_from_file
 
 :warning: **file_to_upload** variable is defined **localy** : the file is sent to the server
-
+  
 Change the external_vars section as needed:  
 ` file_to_upload: /var/lib/awx/mnt/Resources/your_image.ext" `  
-Adjust the prompt on launch option as needed:  
+Adjust the prompt on launch option as needed:    
 `prompt on launch`  
 
 #### - forceoff
-:arrow_right:default: **False**
+:arrow_right:default: **False**  
 :arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares
 
-if you never want to automatically force the remote server power off, you need to change **forceoff** variable in your inventory / variable part:
+if you never want to automatically force the remote server power off, you need to change **forceoff** variable in your inventory / variable part:  
 
 `forceoff = False`
 
@@ -155,27 +179,27 @@ if you never want to automatically force the remote server power off, you need t
 
 #### - maxretries
 activating_maxretries  
-:arrow_right:default: 10 times
+:arrow_right:default: 10 times  
 :arrow_right:used in: activate_firmware_update, update_firmware_from_file, update_firmwares
 
 reboot_maxretries  
-:arrow_right:default: 10 times
+:arrow_right:default: 10 times  
 :arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares
   
 poweroff_maxretries  
-:arrow_right:default: 10 times
+:arrow_right:default: 10 times  
 :arrow_right:used in: power_off.yml, update_firmware_from_file, update_firmwares
 
 poweron_maxretries  
-:arrow_right:default: 10 times
+:arrow_right:default: 10 times  
 :arrow_right:used in: power_on.yml
 
 #### - ntp_server_ip / ntp_server_sync
-:arrow_right:default: NTP
-:arrow_right:used in: set_ntp_server_ip_and_sync.yml
+:arrow_right:default: NTP  
+:arrow_right:used in: set_ntp_server_ip_and_sync.yml  
 
 #### - power_cap
-:arrow_right:default: 500
+:arrow_right:default: 500  
 :arrow_right:used in: set_power_cap_on.yml
 
 So, the **power_cap** variable is defined localy inside external_vars section of the playbook
@@ -198,11 +222,11 @@ By default, the "prompt on launch" option is selected and this is a way to chang
 purpose_to_delete: possible values: Bios or Bmc or Host
 
 #### - rsyslog_server_ip / rsyslog_server_port
-:arrow_right:default port: 514
+:arrow_right:default port: 514  
 :arrow_right:used in: set_rsyslog_server_ip_and_port.yml
 
 #### - reboot
-:arrow_right:default: **True** 
+:arrow_right:default: **True**  
 :arrow_right:used in: reboot.yml, update_firmware_from_file, update_firmwares
 
 if you never want to automatically reboot the BMC, you need to change *reboot* variable in your inventory / variable part:  
@@ -234,13 +258,12 @@ example:
 For more information [See How to change technical states file path](#howto_ts)
 
 #### - token_timeout
-:arrow_right:default: 5 SECONDS 
+:arrow_right:default: 5 SECONDS  
 :arrow_right:used in all playbooks for the connection
 
 #### - rsyslog_server_ip / port
-:arrow_right:default: **True** 
+:arrow_right:default: **True**   
 :arrow_right:used in: check_rsyslog_server_ip_and_port.yml, set_rsyslog_server_ip.yml, set_rsyslog_server_port.yml
-
   
 ### add your playbooks
 Run the ansible role:  
@@ -252,7 +275,7 @@ ansible-playbook add_awx_playbooks.yml
 :rotating_light: Care your TOWER CLI Configuration
 
 ![alt text](doc/awx_tower_conf.png)
-  
+   
 ![alt text](doc/awx_playbooks.png)
 
 You should have now:
@@ -282,8 +305,8 @@ AWX has a native vault capability.
 1. go to AWX Credentials
 2. add your vault *Bull Sequana Edge Vault*
 3. add a vault password
-
 ![alt text](doc/change_vault_password.png)
+
 4. save your change
 ![alt text](doc/vault_id.png)
   
@@ -307,7 +330,7 @@ You can check the credential of your job template:
 2. select a job template
 3. check the Credential section
 
-![alt text](hansible/doc/awx_vault_credential_template.png)
+![alt text](doc/awx_vault_credential_template.png)
 
 #### check with clear password
 For test purpose, you can always use a clear password in a host:
@@ -335,10 +358,26 @@ If you already have an Ansible installation, you can just install ansible playbo
 3. optionnaly if you use Ansible vault:  
 `pip3 install pycryptodome`  
 `pip3 install ansible-vault`  
+4. optionnaly if you use Ansible role installation:  
+```sh
+pip3 install awxkit
+awx --help
+```
 
-:warning: Warning: If you already changed default ansible directories, you should adapt the target directories of the install_playbooks_and_plugins.sh scrit as needed  
+### install your plugins
+Copy your plugins in the shared ansible modules directory.  
+Default is :  
+- /usr/share/ansible/plugins/modules ==> modules  
+- /usr/share/ansible/plugins/module_utils ==> module utils  
 
-Check your ansible python version:  
+Another option is to create symbolic links :
+From your <install_dir>/ansible/plugins/<modules or module_utils>/remote_management :
+`ln -s atos_openbmc.py /usr/share/ansible/plugins/modules/remote_management/atos_openbmc.py`
+`ln -s atos_openbmc_utils.py /usr/share/ansible/plugins/module_utils/remote_management/atos_openbmc_utils.py`
+
+:warning: Care to create the complete hierarchy in targeted directory /usr/share/ansible/plugins if needed
+
+Check your 2 module directories through your **ansible --version** command :  
 `ansible --version`  
 
 As explained in the documentation, you should force python3 interpreter:  
@@ -367,8 +406,8 @@ For test purpose, you can always use a clear password in your *hosts* file
 2. comment/uncomment/modify your variables
 
 ### how to run your playbooks
-2. go to your playbook directory
-3. execute ansible-playbook command with appropriate parameters and desired playbook
+1. go to your playbook directory <install_dir>/projects/openbmc
+2. execute ansible-playbook command with appropriate parameters and desired playbook
   
 `ansible-playbook -l MIPOCKET get_bmc_state.yml`
 
@@ -472,11 +511,10 @@ ex: [root@awx firmware]# ansible-playbook --limit=openbmc -vv get_firmware_inven
 #### how to remove an image
 
 ```yml
-ansible-playbook delete_firmware_image.yml -vv --extra-vars "image=81af6684"
+ansible-playbook delete_firmware_image.yml -vv --extra-vars "purpose=Bios" --extra-vars "version=1.0"
 ```
-ex: [root@awx firmware]# ansible-playbook --limit=openbmc delete_firmware_image.yml -vv --extra-vars "image=81af6684 username=root password=mot_de_passe"
 
-### power
+### how to power on/off
 
 #### how to stop host
 
@@ -513,39 +551,8 @@ ex: [root@awx logs]# ansible-playbook set_rsyslog_server_port.yml
 in your external_vars file, just uncomment the appropriate value:
 power_cap: 500
 
-### countdowns
-
-#### how to change countdowns 
-in your external_vars file, just change the appropriate value:
-
-```
-# Count down before checking a successfull reboot in MINUTES
-reboot_countdown: 3
-# Count down before checking a successfull for power on/off in SECONDS
-poweron_countdown: 5
-poweroff_countdown: 5
-# Count down before checking a successfull end of  activating state in SECONDS
-activating_countdown: 30
-```
-
-### maxretries
-
-#### how to change countdowns 
-in your external_vars file, just change the appropriate value:
-
-```
-# Max retries for reboot in in repeated
-reboot_maxretries: 10
-# Max retries for power on/off in repeated times
-poweron_maxretries: 10
-poweroff_maxretries: 10
-# Max retries for activation (update) in repeated times
-activating_maxretries: 10
-
-```
-
-### check your proxy configuration
-#### system proxy
+## <a name="howto_proxy"></a>How to configure your proxy
+### system proxy
 Check your proxy configuration in /etc/profile.d/proxy.sh : 
 - HTTP_PROXY
 - HTTPS_PROXY
@@ -555,7 +562,7 @@ You can check while installating and starting your containers:
 
 ![alt text](doc/awx_check_profile_proxy.png)
 
-#### docker proxy
+### docker proxy
 1. create docker.service.d
 ``` sh
 mkdir /etc/systemd/system/docker.service.d
@@ -579,8 +586,8 @@ docker login
 docker run hello-world
 ```
 
-### <a name="howto_nmap"></a>how to use the nmap plugin inventory for redfish 
-#### how to detect nmap hosts
+## <a name="howto_nmap"></a>how to use the nmap plugin inventory for redfish 
+### how to detect nmap hosts
 
 `./get_redfish_nmap_hosts.sh`
 
@@ -588,18 +595,7 @@ docker run hello-world
 
 *you should adapt each BMC user/password*
 
-#### how to use it in CLI commands
-
-On each Ansible CLI, add :
-
-`-i /usr/share/ansible/plugins/inventory/redfish_plugin_ansible_inventory.yml`
-
-```
-ansible-playbook get_system.yml -i /etc/ansible/redfish_plugin_ansible_inventory.yml
-ansible-playbook evaluate_firmware_update.yml -i /etc/ansible/redfish_plugin_ansible_inventory.yml
-```
-
-### how to use a CLI Vault
+## how to use an ansible Vault
 1. generate your encrypted password: See [How to manage encrypted passwords](#howto_manage_ansible_password)
 2. run your playbook
 `ansible-playbook --vault-id root_password@prompt projects/openbmc/inventory/get_sensors.yml`
@@ -629,7 +625,7 @@ with passphrase
 **This command generates 1 file :**
 nginx.key
 
-4. Générer une demande de certificat csr:
+4. Generate a certificat request (csr):
 `openssl req -sha256 -new -key nginx.key -out nginx.csr -subj '/CN=awx_web.local'`
 
 **This command generates 1 file :**
@@ -641,15 +637,15 @@ openssl x509 -req -sha256 -days 365 -in nginx.csr -signkey nginx.key -out nginx.
 **This command generates the certificat :**
 nginx.crt
 
-## <a name="howto_ts"></a>How to change technical states file path
+## <a name="howto_ts"></a>How to configure technical states file path
 ### default value
-Default value is /mnt
 
-:rotating_light: /mnt is a path inside a volume (docker or kube)
+:rotating_light: /mnt should be a path added inside a volume (docker or kube)
 
 :no_entry: Warning: re-run AWX TOWER if you mount/unmount the directory
 
 `technical_state_path: /mnt`  
+Default value is /mnt on playbooks
 
 
 ### test your technical states file path indide your kube or docker installation
