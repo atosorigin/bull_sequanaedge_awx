@@ -1,0 +1,22 @@
+---
+- hosts: all
+  connection: local
+  name: Manager NIC inventory information
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get Manager NIC inventory information
+    redfish_info:
+      category: Manager
+      command: GetManagerNicInventory
+      baseuri: "{{ baseuri }}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.manager_nics.entries
+    when: result.redfish_facts.manager_nics.ret

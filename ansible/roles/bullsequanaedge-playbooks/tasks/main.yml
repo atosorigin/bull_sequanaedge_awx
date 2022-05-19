@@ -1,0 +1,57 @@
+---
+- name: Assure {{ org_name }} organization is present"
+  awx.awx.organization:
+    name: "{{ org_name }}"
+    state: present
+
+- name: Assure that {{ project_name }} exists
+  awx.awx.project:
+    name: "{{ project_name }}"
+    state: present
+    organization: "{{ org_name }}"
+    local_path: openbmc
+    scm_type: manual    
+
+- name: Assure that {{ inv_name }} exists
+  awx.awx.inventory:
+    name: "{{ inv_name }}"
+    organization: "{{ org_name }}"  
+    state: present  
+
+- name: Add 10.22.89.186 host
+  awx.awx.host:
+    name: 10.22.89.186
+    inventory: "{{ inv_name }}"
+    state: present
+    variables:
+      baseuri: "{{ inventory_hostname }}"
+      username: root
+      password: "Sdd@atos"
+
+- name: Add {{group_name}} group
+  awx.awx.group:
+    name: "{{ group_name }}"
+    inventory: "{{ inv_name }}"
+    state: present
+    hosts: 
+      - 10.22.89.186
+
+
+- name: Find all job templates
+  find:
+    paths: projects/openbmc
+    recurse: no
+    file_type: file
+    patterns: '*.yml'
+    excludes: 'utils_*,wait_*,should_*,assert_*' 
+  run_once: true
+  register: find_jobs
+
+- name: Template a file to create_jobs.yml
+  ansible.builtin.template:
+    src: ../templates/create_job.yml.j2
+    dest: roles/bullsequanaedge-playbooks/tasks/create_jobs.yml
+  run_once: true
+
+- include: roles/bullsequanaedge-playbooks/tasks/create_jobs.yml
+  

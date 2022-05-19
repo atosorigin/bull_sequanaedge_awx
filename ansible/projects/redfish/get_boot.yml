@@ -1,0 +1,23 @@
+---
+- hosts: all
+  connection: local
+  name: Boot information
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get Boot options
+    redfish_info:
+      category: Systems
+      command: GetBootOverride
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.boot_override.entries
+    when: result.redfish_facts.boot_override.ret

@@ -1,0 +1,19 @@
+---
+- hosts: all
+  connection: local
+  name: Boot information
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: Set continuous boot device to Diags
+    community.general.redfish_command:
+      category: Systems
+      command: EnableContinuousBootOverride
+      resource_id: system
+      bootdevice: "Diags"
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"

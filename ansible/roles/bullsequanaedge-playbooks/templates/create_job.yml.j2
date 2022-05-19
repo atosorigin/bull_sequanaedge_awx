@@ -1,0 +1,12 @@
+{% for item in find_jobs.files %}
+- name: Create Job Template {{ item.path | basename | replace('_',' ' ) | replace('.yml','') }}
+  awx.awx.job_template:
+    name: {{ item.path | basename | replace('_',' ' ) | replace('.yml','') }}
+    description: Get BMC State
+    inventory: {{ inv_name }}
+    project: {{ project_name }}
+    playbook: {{ item.path | basename }}
+    job_type: run
+    verbosity: 0
+    state: present
+{% endfor %}

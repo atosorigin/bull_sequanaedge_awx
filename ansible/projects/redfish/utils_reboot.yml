@@ -1,0 +1,14 @@
+---
+  - name: Reboot BMC
+    redfish_command:
+      category: Manager
+      command: GracefulRestart 
+      baseuri: "{{baseuri}}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+      resource_id: bmc
+    register: result
+
+  - debug:
+      var: result
+      verbosity: 2

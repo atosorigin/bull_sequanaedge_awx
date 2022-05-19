@@ -1,0 +1,24 @@
+---
+- hosts: all
+  name: Get System Inventory
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+  - name: Get System Inventory
+    redfish_info:
+      category: Systems,Accounts
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.system.entries
+    when: result.redfish_facts.system.ret
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.system.entries[0][1].PowerState
+    when: result.redfish_facts.system.ret

@@ -1,0 +1,22 @@
+---
+  - name: Get firmware inventory
+    redfish_info:
+      category: Update
+      command: GetFirmwareInventory
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result_firmware_inventory
+
+  - debug:
+      var: result_firmware_inventory.redfish_facts.firmware.entries
+
+  - set_fact:
+      firmware_inventory: "{{ result_firmware_inventory.redfish_facts.firmware.entries }}"
+
+  - debug:
+      msg: "{{ item.Status }}"
+      verbosity: 2
+    when: >
+        item.Status.Health == "OK"
+    with_items: "{{ firmware_inventory }}"

@@ -1,0 +1,6 @@
+---
+  - name: Reboot BMC
+    include_tasks: utils_reboot.yml
+
+  - name: Retry until reboot
+    include_tasks: wait_until_success_reboot.yml

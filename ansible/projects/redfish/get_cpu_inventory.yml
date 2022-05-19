@@ -1,0 +1,22 @@
+---
+- hosts: all
+  connection: local
+  name: CPU Inventory
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get CPU Inventory
+    redfish_info:
+      category: Systems
+      command: GetCpuInventory
+      baseuri: "{{ baseuri }}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.cpu.entries
+    when: result.redfish_facts.cpu.ret

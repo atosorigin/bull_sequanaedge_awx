@@ -1,0 +1,19 @@
+---
+- hosts: all
+  connection: local
+  name: Boot information
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: Set continuous boot device to Cd
+    community.general.redfish_command:
+      category: Systems
+      command: EnableContinuousBootOverride
+      resource_id: system
+      bootdevice: "Cd"
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"

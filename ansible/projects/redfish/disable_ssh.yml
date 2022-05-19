@@ -1,0 +1,49 @@
+---
+- hosts: all
+  connection: local
+  name: Disable SSH
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: Create token from Redfish
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/SessionService/Sessions
+      method: POST
+      validate_certs: no
+      timeout: 30
+      headers:
+        Content-Type: "application/json"
+      body_format: json
+      status_code: 201
+      body: 
+        UserName: "{{ username }}"
+        Password: "{{ password }}"
+    register: result
+    until: result.status == 201
+    retries: "6"
+    delay: "10"
+  
+  - debug:
+      var: result
+      verbosity: 2
+      
+  - set_fact: 
+      x_token: "{{ result.x_auth_token }}"
+
+  - name: Disable SSH 
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/Managers/bmc/NetworkProtocol
+      method: PATCH
+      status_code: 204
+      body_format: json
+      body: '{ "SSH": { "ProtocolEnabled":false } }'
+      validate_certs: no
+      timeout: 60
+      headers:
+        Content-Type: "application/json"
+        X-Auth-Token: "{{ x_token }}"
+

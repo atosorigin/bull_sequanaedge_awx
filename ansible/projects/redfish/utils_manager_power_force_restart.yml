@@ -1,0 +1,14 @@
+---
+  - name: Manager power force restart
+    redfish_command:
+      category: Manager
+      command: ForceRestart
+      baseuri: "{{baseuri}}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+      resource_id: bmc
+    register: result
+
+  - debug:
+      var: result
+      verbosity: 2

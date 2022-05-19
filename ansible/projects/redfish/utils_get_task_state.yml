@@ -1,0 +1,15 @@
+---
+  - name: Get Task State
+    uri:
+      url: "https://{{ baseuri }}{{ task_location }}"
+      method: GET
+      validate_certs: no
+      timeout: 60
+      status_code: 200
+      headers:
+        X-Auth-Token: "{{ x_token }}"
+    register: result_task_state
+  
+#  - debug:
+#      var: result_task_state
+#      verbosity: 2

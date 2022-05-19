@@ -1,0 +1,70 @@
+---
+  - name: Wait until system powered off
+    block:
+      - name: Set the retry counter
+        set_fact:
+          retry_poweroff_count: "{{ 0 if retry_poweroff_count is undefined else retry_poweroff_count|int + 1 }}"
+        
+      - name: Pause {{ poweroff_countdown }}s while system is powering off
+        pause:
+          seconds: "{{ poweroff_countdown }}"
+
+      - name: Get System
+        redfish_info:
+          category: Systems
+          baseuri: "{{ baseuri }}"
+          username: "{{ username}}"
+          password: "{{ password }}"
+        register: result
+
+      - fail:
+          msg: "System powering off in progress..."
+        when: not result.redfish_facts is defined
+
+      - debug:
+          var: result.redfish_facts
+
+      - debug:
+          var: result.redfish_facts.system
+
+      - debug:
+          var: result.redfish_facts.system.entries
+
+      - debug:
+          var: result.redfish_facts.system.entries[0]
+
+      - debug:
+          var: result.redfish_facts.system.entries[0][1]
+
+      - debug:
+          msg: "{{ result.redfish_facts.system.entries[0][1].PowerState }}"
+
+      - name: Current PowerState
+        set_fact:
+          powerstate: "{{ result.redfish_facts.system.entries[0][1].PowerState }}"
+        when: result.redfish_facts is defined
+
+      - debug:
+          var: powerstate
+
+      - fail:
+          msg: "System powering off in progress..."
+        when: not powerstate == "Off"
+
+    rescue:
+      - fail:
+          msg: Ended after {{ poweroff_maxretries }} retries
+        when: retry_poweroff_count|int == poweroff_maxretries|int
+
+      - name: Powering Off
+        debug:
+          msg: "Powering Off... 1 / {{ poweroff_maxretries }} "
+        when: retry_poweroff_count|int == 1
+
+      - name: Waiting for Powering Off complete
+        debug:
+          msg: "Retrying check for power off complete... {{ retry_poweroff_count }} / {{ poweroff_maxretries }}  "
+        when: retry_poweroff_count|int > 1
+
+      - include_tasks: wait_until_system_power_off.yml
+

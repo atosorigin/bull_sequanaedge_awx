@@ -1,0 +1,17 @@
+---
+- hosts: all
+  connection: local
+  name: Chassis indicator led to off
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: Set chassis indicator led to off
+    community.general.redfish_command:
+      category: Chassis
+      command: IndicatorLedOff
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"

@@ -1,0 +1,58 @@
+---
+- hosts: all
+  connection: local
+  name: Set NTP Servers 
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+    - vars/passwords.yml
+  
+  tasks:
+
+
+  - name: validate file_to_upload variable
+    assert:
+      that:
+        - power_cap is defined
+      fail_msg: "The variable power_cap is NOT defined in inventory vars/external_vars.yml file (Ansible). See readme.md for more details."
+      success_msg: "The variable power_cap is defined"
+    run_once: true
+
+  - name: Create token from Redfish
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/SessionService/Sessions
+      method: POST
+      validate_certs: no
+      timeout: 30
+      headers:
+        Content-Type: "application/json"
+      body_format: json
+      status_code: 201
+      body: 
+        UserName: "{{ username }}"
+        Password: "{{ password }}"
+    register: result
+    until: result.status == 201
+    retries: "6"
+    delay: "10"
+  
+  - debug:
+      var: result
+      verbosity: 2
+      
+  - set_fact: 
+      x_token: "{{ result.x_auth_token }}"
+
+  - name: Set NTP Servers
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/Chassis/chassis/Power
+      method: PATCH
+      status_code: 204
+      body_format: json
+      body: '{ "PowerControl":[{"PowerLimit":{"LimitInWatts": "{{ power_cap }}" }}]}'
+      validate_certs: no
+      timeout: 60
+      headers:
+        Content-Type: "application/json"
+        X-Auth-Token: "{{ x_token }}"
+

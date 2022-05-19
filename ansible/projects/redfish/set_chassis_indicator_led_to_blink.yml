@@ -1,0 +1,17 @@
+---
+- hosts: all
+  connection: local
+  name: Chassis indicator led to blink
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: Set chassis indicator led to blink
+    community.general.redfish_command:
+      category: Systems
+      command: IndicatorLedBlink
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"

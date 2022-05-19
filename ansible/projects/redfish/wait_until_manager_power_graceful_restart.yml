@@ -1,0 +1,74 @@
+---
+  - name: Wait until manager powered graceful restart
+    block:
+      - name: Set the retry counter
+        set_fact:
+          retry_powerGracefulRestart_count: "{{ 0 if retry_powerGracefulRestart_count is undefined else retry_powerGracefulRestart_count|int + 1 }}"
+        
+      - name: Pause {{ powerGracefulRestart_countdown }}s while manager is powering graceful restart
+        pause:
+          seconds: "{{ powerGracefulRestart_countdown }}"
+
+      - name: Get Manager
+        redfish_info:
+          category: Manager
+          baseuri: "{{ baseuri }}"
+          username: "{{ username}}"
+          password: "{{ password }}"
+          command: GetHealthReport
+        register: result
+
+      - fail:
+          msg: "Manager graceful restarting in progress..."
+        when: not result.redfish_facts is defined
+
+      - debug:
+          var: result.redfish_facts
+
+      - debug:
+          var: result.redfish_facts.health_report
+
+      - debug:
+          var: result.redfish_facts.health_report.entries
+
+      - debug:
+          var: result.redfish_facts.health_report.entries[0]
+
+      - debug:
+          var: item
+        with_items: result.redfish_facts.health_report.entries
+
+      - debug:
+          msg: "entry: {{ result.redfish_facts.health_report.entries[0][1] }}"
+
+      - debug:
+          msg: "Status: {{ result.redfish_facts.health_report.entries[0][1].Manager.Status }}"
+
+      - name: Current State
+        set_fact:
+          state: "{{ result.redfish_facts.health_report.entries[0][1].Manager.Status.State }}"
+        when: result.redfish_facts is defined
+
+      - debug:
+          var: state
+
+      - fail:
+          msg: "Manager graceful restarting in progress..."
+        when: not state == "Enabled"
+
+    rescue:
+      - fail:
+          msg: Ended after {{ powerGracefulRestart_maxretries }} retries
+        when: retry_powerGracefulRestart_count|int == powerGracefulRestart_maxretries|int
+
+      - name: Restarting Graceful Restart
+        debug:
+          msg: "Restarting On... 1 / {{ powerGracefulRestart_maxretries }} "
+        when: retry_powerGracefulRestart_count|int == 1
+
+      - name: Waiting for Graceful Restarting complete
+        debug:
+          msg: "Retrying check for power Graceful Restart complete... {{ retry_powerGracefulRestart_count }} / {{ powerGracefulRestart_maxretries }}  "
+        when: retry_powerGracefulRestart_count|int > 1
+
+      - include_tasks: wait_until_manager_power_graceful_restart.yml

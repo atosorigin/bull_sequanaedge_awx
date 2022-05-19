@@ -1,0 +1,149 @@
+---
+- hosts: all
+  connection: local
+  name: Update tar BMC image
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: validate file_to_upload variable
+    assert:
+      that:
+        - file_to_upload is defined
+      fail_msg: "The variable file_to_upload is NOT defined in inventory vars/external_vars.yml file (Ansible). See readme.md for more details."
+      success_msg: "The variable file_to_upload is defined"
+    run_once: true
+    
+  - name: Create token from Redfish
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/SessionService/Sessions
+      method: POST
+      validate_certs: no
+      timeout: 30
+      headers:
+        Content-Type: "application/json"
+      body_format: json
+      status_code: 201
+      body: 
+        UserName: "{{ username }}"
+        Password: "{{ password }}"
+    register: result
+    until: result.status == 201
+    retries: "6"
+    delay: "10"
+  
+  - debug:
+      var: result
+      verbosity: 2
+      
+  - set_fact: 
+      x_token: "{{ result.x_auth_token }}"
+
+
+  - name: Set ApplyTime=OnReset
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/UpdateService
+      method: PATCH
+      status_code: 200
+      body: '{ "HttpPushUriOptions": { "HttpPushUriApplyTime": { "ApplyTime": "OnReset" } } }'
+      validate_certs: no
+      timeout: 60
+      headers:
+        Content-Type: "application/json"
+        X-Auth-Token: "{{ x_token }}"
+    register: result_ApplyTime
+
+  - debug:
+      var: result_ApplyTime
+      verbosity: 2
+
+  - name: Get HttpPushUri
+    uri:
+      url: https://{{ baseuri }}/redfish/v1/UpdateService
+      method: GET
+      validate_certs: no
+      headers:
+        X-Auth-Token: "{{ x_token }}"
+    register: result_push_uri
+
+  - debug:
+      var: result_push_uri
+      verbosity: 2
+
+  - set_fact: 
+      push_uri: "{{ result_push_uri.json.HttpPushUri }}"
+
+  - name: Upload with ApplyTime=OnReset Firmware Image
+    uri:
+      url: https://{{ baseuri }}{{ push_uri }}
+      src: "{{ file_to_upload }}"
+      method: POST
+      validate_certs: no
+      timeout: 60
+      status_code: 202
+      headers:
+        Content-Type: "application/octet-stream"
+        X-Auth-Token: "{{ x_token }}"
+    register: result_upload
+
+  - debug:
+      var: result_upload
+      verbosity: 2
+
+  - set_fact: 
+      location: "{{ result_upload.location }}"
+
+  - set_fact: 
+      taskid: "{{ result_upload.json.Id }}"
+
+  - set_fact: 
+      task_location: "{{ result_upload.json['@odata.id'] }}"
+
+  - set_fact: 
+      taskstate: "{{ result_upload.json.TaskState }}"
+
+  - set_fact: 
+      taskstatus: "{{ result_upload.json.TaskStatus }}"
+      
+  - fail:
+      msg: "task status error :{{ taskstatus }} "
+    when: not taskstatus == "OK"
+
+  - fail:
+      msg: "task state error :{{ taskstate }} "
+    when: not taskstate == "Running"
+
+  - fail:
+      msg: "task monitoring location not defined"
+    when: not location is defined
+
+  - name: Retry until task is Completed
+    include_tasks: wait_until_task_completed.yml
+
+  - name: Check task
+    include_tasks: utils_task.yml
+
+  - fail:
+      msg: "no task response "
+    when: not result_task.json is defined
+
+  - set_fact: 
+      taskstate: "{{ result_task.json.TaskState }}"
+
+  - set_fact: 
+      taskstatus: "{{ result_task.json.TaskStatus }}"
+      
+  - fail:
+      msg: "task status error :{{ taskstatus }} "
+    when: not taskstatus == "OK"
+
+  - fail:
+      msg: "task state error :{{ taskstate }} "
+    when: not taskstate == "Completed"
+
+  - name: Should reboot
+    include_tasks: should_reboot.yml
+    when: taskstate == "Completed" and taskstatus == "OK" and '"OMF_CEB" in file_to_upload'

@@ -1,0 +1,23 @@
+---
+- hosts: all
+  connection: local
+  name: Sessions
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get sessions
+    redfish_info:
+      category: Sessions
+      command: GetSessions
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.session.entries
+    when: result.redfish_facts.session.ret
+

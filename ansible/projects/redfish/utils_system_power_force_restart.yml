@@ -1,0 +1,14 @@
+---
+  - name: Immediate Force Restart system power
+    redfish_command:
+      category: Systems
+      command: PowerForceRestart
+      baseuri: "{{baseuri}}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+      resource_id: system
+    register: result
+
+  - debug:
+      var: result
+      verbosity: 2

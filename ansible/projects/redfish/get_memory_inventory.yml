@@ -1,0 +1,22 @@
+---
+- hosts: all
+  connection: local
+  name: Memory Inventory
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get Memory Inventory
+    redfish_info:
+      category: Systems
+      command: GetMemoryInventory
+      baseuri: "{{ baseuri }}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+    register: result
+
+  - debug:
+      var: result.redfish_facts.memory.entries
+    when: result.redfish_facts.memory.ret

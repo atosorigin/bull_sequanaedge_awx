@@ -1,0 +1,70 @@
+---
+  - name: Wait until manager is restarted
+    block:
+      - name: Set the retry counter
+        set_fact:
+          retry_power_force_restart_count: "{{ 0 if retry_power_force_restart_count is undefined else retry_power_force_restart_count|int + 1 }}"
+        
+      - name: Pause {{ power_force_restart_countdown }}s while manager is restarting
+        pause:
+          seconds: "{{ power_force_restart_countdown }}"
+
+      - name: Get Manager
+        redfish_info:
+          category: Manager
+          baseuri: "{{ baseuri }}"
+          username: "{{ username}}"
+          password: "{{ password }}"
+        register: result
+
+      - fail:
+          msg: "Manager restarting in progress..."
+        when: not result.redfish_facts is defined
+
+      - debug:
+          var: result.redfish_facts
+
+      - debug:
+          var: result.redfish_facts.manager
+
+      - debug:
+          var: result.redfish_facts.manager.entries
+
+      - debug:
+          var: result.redfish_facts.manager.entries[0]
+
+      - debug:
+          var: result.redfish_facts.manager.entries[0][1]
+
+      - debug:
+          msg: "{{ result.redfish_facts.manager.entries[0][1]['PowerState'] }}"
+
+      - name: Current PowerState
+        set_fact:
+          powerstate: "{{ result.redfish_facts.manager.entries[0][1]['PowerState'] }}"
+        when: result.redfish_facts is defined
+
+      - debug:
+          var: powerstate
+
+      - fail:
+          msg: "Manager powering force restart in progress..."
+        when: not powerstate == "On"
+
+    rescue:
+      - fail:
+          msg: Ended after {{ power_force_restart_maxretries }} retries
+        when: retry_power_force_restart_count|int == power_force_restart_maxretries|int
+
+      - name: Powering Force Restart
+        debug:
+          msg: "Powering Force Restart... 1 / {{ power_force_restart_maxretries }} "
+        when: retry_power_force_restart_count|int == 1
+
+      - name: Waiting for Powering Force Restart complete
+        debug:
+          msg: "Retrying check for power force restart complete... {{ retry_power_force_restart_count }} / {{ power_force_restart_maxretries }}  "
+        when: retry_power_force_restart_count|int > 1
+
+      - include_tasks: wait_until_manager_power_force_restart.yml
+

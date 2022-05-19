@@ -1,0 +1,48 @@
+# !! BE CAREFUL TO SEPARATE VARIABLES WITH A SPACE AFTER ':'
+
+# Define if force off is allowed during update
+forceoff: false
+# Define if reboot is allowed during update
+reboot: true
+# Define the power cap limit
+power_cap: 500
+# Define the NTP servers
+# no default values
+# ntp_server1: 
+# ntp_server2: 
+# ntp_server3: 
+# Set a path to a Bull Technical State file
+technical_state_path: /mnt
+# Define rsyslog ip
+# no default value
+# rsyslog_server_ip: 
+# rsyslog port (default is 514)
+rsyslog_server_port: 514
+# File to upload with update_firmware_from_file.yml playbook
+# no default value
+# file_to_upload: OMF_CEB_65_00_0803.tar
+
+# url timeout when posting (update firmware)
+post_timeout: 120
+# Count down before checking a successfull reboot in MINUTES (used in firmware update)
+reboot_countdown: 1
+# Count down before checking a successfull for power on in SECONDS
+poweron_countdown: 5
+# Count down before checking a successfull for power off in SECONDS
+poweroff_countdown: 5
+# Count down before checking a successfull for power force restart in SECONDS
+power_force_restart_countdown: 5
+# Count down before checking a successfull for power graceful restart in SECONDS
+power_graceful_restart_countdown: 5
+# Number of retries while rebooting before failure (used in firmware update)
+reboot_maxretries: 10
+# Number of retries while powering on before failure
+poweron_maxretries: 10
+# Number of retries while powering off before failure
+poweroff_maxretries: 10
+# Number of retries while powering force restart before failure
+power_force_restart_maxretries: 10
+# Number of retries while powering graceful restart before failure
+power_graceful_restart_maxretries: 10
+# Number of retries while monitoring firmwares before failure
+taskmon_maxretries: 10

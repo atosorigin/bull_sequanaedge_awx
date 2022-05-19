@@ -1,0 +1,21 @@
+---
+- hosts: all
+  connection: local
+  name: Chassis Power report
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get Chassis Power
+    redfish_info:
+      category: Chassis
+      command: all
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts

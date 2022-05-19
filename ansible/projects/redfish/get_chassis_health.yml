@@ -1,0 +1,22 @@
+---
+- hosts: all
+  connection: local
+  name: Chassis Health report
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get Chassis Health
+    redfish_info:
+      category: Chassis
+      command: GetHealthReport
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.health_report.entries
+    when: result.redfish_facts.health_report.ret

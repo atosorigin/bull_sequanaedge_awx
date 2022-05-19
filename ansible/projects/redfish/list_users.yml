@@ -1,0 +1,21 @@
+---
+- hosts: all
+  connection: local
+  name: List Users
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: List all users
+    redfish_info:
+      category: Accounts
+      command: ListUsers
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+  - debug:
+      var: result

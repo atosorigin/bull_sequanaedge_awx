@@ -1,0 +1,21 @@
+---
+- hosts: all
+  connection: local
+  name: Systems NIC inventory information
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get Systems NIC inventory information
+    redfish_info:
+      category: Systems
+      command: GetNicInventory
+      baseuri: "{{ baseuri }}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+    register: result
+
+  - debug:
+      var: result

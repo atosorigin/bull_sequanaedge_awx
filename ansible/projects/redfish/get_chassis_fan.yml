@@ -1,0 +1,22 @@
+---
+- hosts: all
+  connection: local
+  name: Fan Inventory
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: get Chassis Fan Inventory
+    redfish_info:
+      category: Chassis
+      command: GetFanInventory
+      baseuri: "{{ baseuri }}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.fan.entries
+    when: result.redfish_facts.fan.ret

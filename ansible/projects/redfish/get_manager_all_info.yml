@@ -1,0 +1,21 @@
+---
+- hosts: all
+  connection: local
+  name: All information
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get All information
+    redfish_info:
+      category: Manager
+      command: all
+      baseuri: "{{ baseuri }}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+    register: result
+
+  - debug:
+      var: result

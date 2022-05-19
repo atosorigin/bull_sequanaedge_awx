@@ -1,0 +1,13 @@
+---
+- hosts: all
+  connection: local
+  name: Get Inventory of Firmware 
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+    - vars/passwords.yml
+  
+  tasks:
+  - name: Get firmware inventory
+    include_tasks: utils_firmware_inventory.yml
+    ignore_errors: True

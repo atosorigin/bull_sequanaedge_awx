@@ -1,0 +1,27 @@
+---
+- hosts: all
+  connection: local
+  name: Manager power force restart
+  gather_facts: False
+  vars_files:
+    - vars/external_vars.yml
+    - vars/passwords.yml
+  
+  tasks:
+
+  - name: validate power_force_restart_countdown variable
+    assert:
+      that:
+        - power_force_restart_countdown is defined
+      fail_msg: "The variable power_force_restart_countdown is NOT defined in inventory vars/external_vars.yml file (Ansible). See readme.md for more details."
+      success_msg: "The variable power_force_restart_countdown is defined"
+    run_once: true
+
+  - debug:
+      msg: "power_force_restart_countdown is {{ powerforce_restart_countdown }}"
+    when: power_force_restart_countdown is defined
+    run_once: true
+
+  - include_tasks: utils_manager_power_force_restart.yml 
+
+  - include_tasks: wait_until_manager_power_force_restart.yml

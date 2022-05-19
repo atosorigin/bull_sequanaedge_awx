@@ -1,0 +1,22 @@
+---
+- hosts: all
+  connection: local
+  name: Network Protocols 
+  gather_facts: False
+  vars_files:
+    - vars/passwords.yml
+
+  tasks:
+
+  - name: Get network protocols
+    redfish_info:
+      category: Manager
+      command: GetNetworkProtocols
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    register: result
+
+  - ansible.builtin.debug:
+      var: result.redfish_facts.network_protocols.entries
+    when: result.redfish_facts.network_protocols.ret

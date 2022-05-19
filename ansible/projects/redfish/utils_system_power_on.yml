@@ -1,0 +1,14 @@
+---
+  - name: System power on
+    redfish_command:
+      category: Systems
+      command: PowerOn
+      baseuri: "{{baseuri}}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+      resource_id: system
+    register: result
+
+  - debug:
+      var: result
+      verbosity: 2

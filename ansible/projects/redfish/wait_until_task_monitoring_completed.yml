@@ -1,0 +1,65 @@
+---
+  - name: Wait until task completed
+    block:
+      - name: Set the retry counter
+        set_fact:
+          retry_taskmon_count: "{{ 0 if retry_taskmon_count is undefined else retry_taskmon_count|int + 1 }}"
+        
+      - name: Pause {{ reboot_countdown }}s while BMC is rebooting
+        pause:
+          seconds: "{{ reboot_countdown }}"
+
+      - name: Get Task Monitor
+        include_tasks: utils_task_monitor.yml
+
+      - debug:
+          msg: "{{ result_task_monitor.json.TaskStatus }}"
+          verbosity: 2
+        when: result_task_monitor.json is defined
+
+      - debug:
+          msg: "{{ result_task_monitor.json.TaskState }}"
+          verbosity: 2
+        when: result_task_monitor.json is defined
+
+      - fail:
+          msg: "Task in progress..."
+        when: result_task_monitor.status == 202
+
+      - fail:
+          msg: "Task not terminated..."
+        when: result_task_monitor is defined and not result_task_monitor.status == 204
+
+    rescue:
+      - fail:
+          msg: Ended after {{ taskmon_maxretries }} retries
+        when: retry_taskmon_count|int == reboot_maxretries|int
+
+      - fail:
+          msg: "response TaskState is not Running"
+        when: \
+              result_task_monitor is defined and \
+              result_task_monitor.status == 202 and \
+              result_task_monitor.json is defined and \
+              not result_task_monitor.json.TaskState == "Running"
+
+      - fail:
+          msg: "response TaskStatus is not OK"
+        when: \
+              result_task_monitor is defined and \
+              result_task_monitor.status == 202 and \
+              result_task_monitor.json is defined and \
+              not result_task_monitor.json.TaskStatus == "OK"
+
+      - name: Rebooting
+        debug:
+          msg: "Rebooting... 1 / {{ reboot_maxretries }} "
+        when: retry_taskmon_count|int == 1
+
+      - name: Waiting for Task complete
+        debug:
+          msg: "Retrying check for task complete... {{ retry_taskmon_count }} / {{ reboot_maxretries }}  "
+        when: retry_taskmon_count|int > 1
+
+      - include_tasks: wait_until_task_completed.yml
+

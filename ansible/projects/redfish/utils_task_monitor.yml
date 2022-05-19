@@ -1,0 +1,15 @@
+---
+  - name: Get task monitor
+    uri:
+      url: "{{ location }}"
+      method: GET
+      validate_certs: no
+      timeout: 60
+      status_code: [204, 202]
+      headers:
+        X-Auth-Token: "{{ x_token }}"
+    register: result_task_monitor
+
+  - debug:
+      var: result_task_monitor
+      verbosity: 2

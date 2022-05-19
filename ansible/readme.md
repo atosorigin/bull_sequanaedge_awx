@@ -1,9 +1,9 @@
-# BullSequana Edge Ansible Playbooks and Modules
+# BullSequana Edge/SH Ansible Playbooks and Modules
 
-BullSequana Edge Ansible Playbooks and Modules allows Data Center and IT administrators to use RedHat Ansible or AWX to automate and orchestrate the operations (power, update) of BullSequana Edge.
+BullSequana Edge/SH Ansible Playbooks and Modules allows Data Center and IT administrators to use RedHat Ansible or AWX to automate and orchestrate the operations (power, update) of BullSequana Edge/SH.
 
 ## Supported Platforms
-BullSequana Edge ORA
+BullSequana Edge/SH
 
 ## Prerequisites
 Ansible playbooks can be used as is with following prerequisites:
@@ -14,7 +14,7 @@ Ansible playbooks can be used as is with following prerequisites:
   * modules Python : ansible-vault and tzlocal (delivered in "prerequisites" directory)
 
 ## Summary
-- [BullSequana Edge Playbooks](#playbooks)
+- [BullSequana Edge/SH Playbooks](#playbooks)
 - [What to do first on AWX](#what_awx)
 - [What to do first on Ansible](#what_ansible)
 - [How to manage AWX encrypted passwords](#howto_manage_ansible_password)
@@ -27,8 +27,8 @@ Ansible playbooks can be used as is with following prerequisites:
 - [LICENSE](#license)
 - [Version](#version)
 
-## <a name="playbooks"></a>BullSequana Edge Playbooks
-- `Activate firmware updates`: Activate BullSequana Edge uploaded firmwares - Do NOT upload firmwares (need to be planed before)
+## <a name="playbooks"></a>BullSequana Edge/SH Playbooks
+- `Activate firmware updates`: Activate BullSequana Edge/SH uploaded firmwares - Do NOT upload firmwares (need to be planed before)
 - `Evaluate firmware update from Technical State`:Evaluate firmware update from Atos specific Technical State file (comparaison)
 - `Delete firmware image`: Delete a firmware image by id
 - `Firmware inventory` - Active: Get firmware inventory in "Active" state
@@ -47,30 +47,30 @@ Ansible playbooks can be used as is with following prerequisites:
 - `Upload firmware images from Technical State`: Upload images from technical state (Atos specific TS file) - Do NOT activate firmwares (need to be planed after)
 - `Check critical high and low alarms`: Check critical high and low alarm states from sensors
 - `Check warning high and low alarms`: Check warning high and low alarm states from sensors
-- `State BMC`: Get BullSequana Edge current BMC state
-- `State Chassis`: Get BullSequana Edge current chassis state 
-- `State Host`:Get BullSequana Edge current host state
-- `Get FRU`: Get BullSequana Edge FRU information
-- `Get Network`: Get BullSequana Edge Network information
-- `Get Sensors`: Get BullSequana Edge Sensors information
-- `Get System`: Get BullSequana Edge System information
+- `State BMC`: Get BullSequana Edge/SH current BMC state
+- `State Chassis`: Get BullSequana Edge/SH current chassis state 
+- `State Host`:Get BullSequana Edge/SH current host state
+- `Get FRU`: Get BullSequana Edge/SH FRU information
+- `Get Network`: Get BullSequana Edge/SH Network information
+- `Get Sensors`: Get BullSequana Edge/SH Sensors information
+- `Get System`: Get BullSequana Edge/SH System information
 - `Check Rsyslog Server IP and Port`: Compare Rsyslog Server IP and Port to variables defined in inventory
-- `Rsyslog Server IP and Port`: Get BullSequana Edge Rsyslog IP and Port
+- `Rsyslog Server IP and Port`: Get BullSequana Edge/SH Rsyslog IP and Port
 - `NTP Server Ip and Sync`: NTP Server Ip and Sync
-- `Set Rsyslog Server IP`: Set Rsyslog BullSequana Edge IP
-- `Set Rsyslog Server Port: `Set Rsyslog BullSequana Edge Port
-- `Set NTP Server Ip and Sync`: Set BullSequana Edge Server Ip and Sync
+- `Set Rsyslog Server IP`: Set Rsyslog BullSequana Edge/SH IP
+- `Set Rsyslog Server Port: `Set Rsyslog BullSequana Edge/SH Port
+- `Set NTP Server Ip and Sync`: Set BullSequana Edge/SH Server Ip and Sync
 - `Immediate Shutdown`: Request an Immediate Shutdown
-- `Check BMC alive`: Check if BullSequana Edge device is alive
-- `Check Power Off`: Check if BullSequana Edge host is powered off
-- `Check Power On`: Check if BullSequana Edge host is powered on
-- `Get LED state`: Get BullSequana Edge LED state
-- `Power Cap`: Get BullSequana Edge Power Cap
+- `Check BMC alive`: Check if BullSequana Edge/SH device is alive
+- `Check Power Off`: Check if BullSequana Edge/SH host is powered off
+- `Check Power On`: Check if BullSequana Edge/SH host is powered on
+- `Get LED state`: Get BullSequana Edge/SH LED state
+- `Power Cap`: Get BullSequana Edge/SH Power Cap
 - `Orderly Shutdown`: Request an Orderly Shutdown
 - `Power On`: Request a Power On
-- `Reboot`: Reboot the BullSequana Edge BMC
-- `Set LED on/off`: Set BullSequana Edge LED state
-- `Set Power Cap on/off`: Set BullSequana Edge Power cap on/off
+- `Reboot`: Reboot the BullSequana Edge/SH BMC
+- `Set LED on/off`: Set BullSequana Edge/SH LED state
+- `Set Power Cap on/off`: Set BullSequana Edge/SH Power cap on/off
 
 ## <a name="what_awx"></a>What to do first on AWX
 
@@ -92,32 +92,38 @@ from this repository, just clone:
 git clone https://github.com/atosorigin/bull_sequanaedge_awx.git
 ```
 
-### install your playbooks
-Copy the "openbmc" directory in your <target_dir> directory (mounted in your kube / docker)  
-:warning: Warning : Exclude **vars** directory if you modify some variables in your <target_dir> directory
+### create your superuser
+As indicated in the documentation, create your first super user:
+`docker exec -ti tools_awx_1 awx-manage createsuperuser`
+![alt text](doc/awx_create_superuser.png)
 
-:info: Info You may map directly the **projects** directory to your directory mounted in your kube / docker  
+:computer: INFO: See https://github.com/ansible/awx/blob/devel/tools/docker-compose/README.md#create-an-admin-user
+  
+You should be able to login
+
+![alt text](doc/awx_login.png)
+
+### install your playbooks
+You may use the "ansible/projects/openbmc" directory as is or you can copy it elsewhere.
 
 ![alt text](doc/awx_install_playbooks.png)
 
-:computer: in Docker, you can simply add the volume in **docker-compose.yml.j2** file and re-run :
+:warning: Warning: Care to add the correct volume in your **docker-compose.yml.j2** file :
+- Edge: **projects/openbmc** directory
+- SH: **projects/redfish** directory
 
 ![alt text](doc/awx_add_volume.png)
 
-:warning: Warning: You should re-run **docker-compose-build** if you change the **docker-compose.yml.j2** file
+:rotating_light: Alert:You should re-run **docker-compose-build** for any change in your **docker-compose.yml.j2** file
 
 ` make docker-compose-build `
 ` make docker-compose `
 
 ![alt text](doc/awx_make_docker_compose.png)
 
-### create your superuser
-As indicated in the documentation, create your first super user:
-`docker exec -ti tools_awx_1 awx-manage createsuperuser`
-:computer: INFO:  See https://github.com/ansible/awx/blob/devel/tools/docker-compose/README.md#create-an-admin-user
-
 ### install your plugins
-Copy your plugins in the shared ansible module directory.
+*Edge only: plugins is NOT needed for BullSequanaSH systems*
+You may copy your plugins in the shared ansible module directory.
 
 :warning: If you use kube or docker : you should map the plugins directory
 
@@ -131,9 +137,12 @@ Copy your plugins in the shared ansible module directory.
 ![alt text](doc/awx_make_docker_compose.png)
 
 ### change your inventory variables 
-You should change the *Variables* in the file <target_dir>/openbmc/vars/external_vars.yml declared in your volume.
 
-You may add/change *Variables*  in AWX inventory variables, if you remove it from your openbmc/vars/external_vars.yml file.
+:warning: Warning : default variables are defined in **ansible/projects/<openbmc or redfish>/vars/external_vars**
+
+You should change the *Variables* in the file <target_dir>/<openbmc or redfish>/vars/external_vars.yml declared in your volume.
+
+You may add/change *Variables*  in AWX inventory variables, if you remove it from your vars/external_vars.yml file.
 
 
 The following chapter explains the meaning of all variables.
@@ -265,56 +274,22 @@ For more information [See How to change technical states file path](#howto_ts)
 :arrow_right:default: **True**   
 :arrow_right:used in: check_rsyslog_server_ip_and_port.yml, set_rsyslog_server_ip.yml, set_rsyslog_server_port.yml
   
-### add your playbooks
-Run the ansible role:  
-
-```sh
-cd ansible
-ansible-playbook add_awx_playbooks.yml
-```
-:rotating_light: Care your TOWER CLI Configuration
-
-![alt text](doc/awx_tower_conf.png)
-   
-![alt text](doc/awx_playbooks.png)
-
-You should have now:
-- 1 Organization : Bull
-- 1 Inventory : BullSequana Edge Inventory
-- 1 Group : BullSequana Edge Group
-- 1 Host as an example
-- 1 Project : BullSequana Edge Playbooks
-- 1 Credential : Bull Sequana Edge Vault
-- Bull playbooks
-
-### complete your inventory first
-1. go to Inventory 
-2. select or create an inventory
-3. add your hosts
-4. optionally, depending on host number, create multiple groups
-
-![alt text](doc/awx_inventory.png)
-
-
-Optionally, your can import hosts from ansible: [See how to export ansible inventory hosts file to awx inventory section](#howto_export_inventory)  
-Optionally, your can detect hosts with nmap inventory script: [See nmap in Command line section](#howto_nmap)  
-
-### add a credential to encrypt passwords
+## How to add a credential
 AWX has a native vault capability.
-#### - add an AWX vault password
+### - add an AWX vault password
 1. go to AWX Credentials
-2. add your vault *Bull Sequana Edge Vault*
+2. add your vault *Bull Sequana Edge/SH Vault*
 3. add a vault password
 ![alt text](doc/change_vault_password.png)
 
 4. save your change
 ![alt text](doc/vault_id.png)
   
-#### - generate your passwords
+### - generate your passwords
 You can now generate your passwords: See [How to manage AWX encrypted passwords](#howto_manage_awx_password)
 You should generate as many *password variables* as different real passwords you have.
 
-#### - use it in your inventory
+### - use it in your inventory
 1. go to AWX Inventory
 2. select the host where you need to customize the password
 3. add "password:" variable for each host
@@ -324,7 +299,7 @@ password: "{{root_password_for_edge}}"
 ```
 ![alt text](doc/change_encrypted_password.png)
 
-#### check job template credential
+### check job template credential
 You can check the credential of your job template:
 1. go to Templates
 2. select a job template
@@ -332,7 +307,7 @@ You can check the credential of your job template:
 
 ![alt text](doc/awx_vault_credential_template.png)
 
-#### check with clear password
+### check with clear password
 For test purpose, you can always use a clear password in a host:
 1. go to Inventory
 2. select a host
@@ -343,7 +318,7 @@ For test purpose, you can always use a clear password in a host:
 ## <a name="what_ansible"></a>What to do first on Ansible
 
 ### what is the content
-Bull Sequana Edge Ansible playbooks contains:
+Bull Sequana Edge/SH Ansible playbooks contains:
 1. Playbooks
 2. One Inventory Plugin for nmap detection
 3. One Callback Plugin for better CLI stdout UX 
@@ -640,7 +615,7 @@ nginx.crt
 ## <a name="howto_ts"></a>How to configure technical states file path
 ### default value
 
-:rotating_light: /mnt should be a path added inside a volume (docker or kube)
+:rotating_light:Alert: /mnt should be a path added inside a volume (docker or kube)
 
 :no_entry: Warning: re-run AWX TOWER if you mount/unmount the directory
 
@@ -783,5 +758,5 @@ You can use the directory ansible/openbmc to add your own playbooks at your own 
 This project is licensed under GPL-3.0 License. Please see the [COPYING](../COPYING.md) for more information
 
 ## <a name="version"></a>Version
-BullSequana Edge System Management Playbook version 1.0.11
+BullSequana Edge/SH System Management Playbook version 1.0.11
 MISM_BULLSEQUANA_EDGE_PLAYBOOKS_VERSION=1.0.11

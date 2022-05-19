@@ -1,0 +1,70 @@
+---
+  - name: Wait until system powered on
+    block:
+      - name: Set the retry counter
+        set_fact:
+          retry_poweron_count: "{{ 0 if retry_poweron_count is undefined else retry_poweron_count|int + 1 }}"
+        
+      - name: Pause {{ poweron_countdown }}s while system is powering on
+        pause:
+          seconds: "{{ poweron_countdown }}"
+
+      - name: Get System
+        redfish_info:
+          category: Systems
+          baseuri: "{{ baseuri }}"
+          username: "{{ username}}"
+          password: "{{ password }}"
+        register: result
+
+      - fail:
+          msg: "System powering on in progress..."
+        when: not result.redfish_facts is defined
+
+      - debug:
+          var: result.redfish_facts
+
+      - debug:
+          var: result.redfish_facts.system
+
+      - debug:
+          var: result.redfish_facts.system.entries
+
+      - debug:
+          var: result.redfish_facts.system.entries[0]
+
+      - debug:
+          var: result.redfish_facts.system.entries[0][1]
+
+      - debug:
+          msg: "{{ result.redfish_facts.system.entries[0][1]['PowerState'] }}"
+
+      - name: Current PowerState
+        set_fact:
+          powerstate: "{{ result.redfish_facts.system.entries[0][1]['PowerState'] }}"
+        when: result.redfish_facts is defined
+
+      - debug:
+          var: powerstate
+
+      - fail:
+          msg: "System powering on in progress..."
+        when: not powerstate == "On"
+
+    rescue:
+      - fail:
+          msg: Ended after {{ poweron_maxretries }} retries
+        when: retry_poweron_count|int == poweron_maxretries|int
+
+      - name: Powering On
+        debug:
+          msg: "Powering On... 1 / {{ poweron_maxretries }} "
+        when: retry_poweron_count|int == 1
+
+      - name: Waiting for Powering On complete
+        debug:
+          msg: "Retrying check for power on complete... {{ retry_poweron_count }} / {{ poweron_maxretries }}  "
+        when: retry_poweron_count|int > 1
+
+      - include_tasks: wait_until_system_power_on.yml
+

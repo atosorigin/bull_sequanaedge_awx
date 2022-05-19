@@ -1,0 +1,14 @@
+---
+  - name: Immediate Power Force Off system
+    redfish_command:
+      category: Systems
+      command: PowerForceOff
+      baseuri: "{{baseuri}}"
+      username: "{{ username}}"
+      password: "{{ password }}"
+      resource_id: system
+    register: result
+
+  - debug:
+      var: result
+      verbosity: 2

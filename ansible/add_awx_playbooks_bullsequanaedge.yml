@@ -1,0 +1,15 @@
+---
+- name: Add Bull Sequana Edge playbooks
+  hosts: localhost
+  environment:
+    TOWER_HOST: "https://localhost:8043"
+    TOWER_USERNAME: root
+    TOWER_PASSWORD: root
+    TOWER_INSECURE: true
+    TOWER_VERIFY_SSL: false
+
+  gather_facts: true
+  roles:
+    - {role: bullsequanaedge-playbooks}
+
+

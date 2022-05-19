@@ -1,0 +1,64 @@
+---
+  - name: Wait until success reboot
+    block:
+      - name: Set the retry counter
+        set_fact:
+          retry_reboot_count: "{{ 0 if retry_reboot_count is undefined else retry_reboot_count|int + 1 }}"
+        
+      - name: Pause {{ reboot_countdown }}mn while BMC is rebooting
+        pause:
+          minutes: "{{ reboot_countdown }}"
+
+      - name: Get Firmware inventory
+        include_tasks: utils_firmware_inventory.yml
+        ignore_errors: True
+
+      - debug:
+          msg: "{{ item.Status.Health }}"
+          verbosity: 2
+        when: item.Status.Health == "OK"
+        with_items: "{{ firmware_inventory }}"
+
+      - name: Result fw
+        debug:
+          msg: "{{ result_firmware_inventory.redfish_facts.firmware.ret }}"
+          verbosity: 2
+
+      - fail:
+          msg: "Token lost ==> recreating token"
+        when: not result_firmware_inventory.redfish_facts.firmware.ret == true
+
+      - set_fact:
+          found_retry_reboot: false
+
+      - set_fact:
+          found_retry_reboot: true
+        when: not item.Status.Health == "OK"
+        with_items: "{{ firmware_inventory }}"
+
+      - name: found_retry_reboot
+        debug:
+          var: found_retry_reboot
+          verbosity: 2
+
+      - fail:
+          msg: "Not Available"
+        when: found_retry_reboot is defined and found_retry_reboot == true
+
+    rescue:
+      - fail:
+          msg: Ended after {{ reboot_maxretries }} retries
+        when: retry_reboot_count|int == reboot_maxretries|int
+
+      - name: Rebooting
+        debug:
+          msg: "Rebooting... 1 / {{ reboot_maxretries }} "
+        when: retry_reboot_count|int == 1
+
+      - name: Waiting for BMC reboot
+        debug:
+          msg: "Retrying check for reboot... {{ retry_reboot_count }} / {{ reboot_maxretries }}  "
+        when: retry_reboot_count|int > 1
+
+      - include_tasks: wait_until_success_reboot.yml
+
